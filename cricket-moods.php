@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 1.0.0
+Version: 1.0.1
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -33,7 +33,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 define('CM_IMAGE_DIR', '/wp-images/smilies/');
 
 // These are used for writing various debug information to a file.  They are
-// currently unused.
+// currently unused.  So don't bother uncommenting them.
 //define('CM_DEBUG_FILE', $_SERVER['DOCUMENT_ROOT'].'/wp-content/plugins/cricket-moods/debug.txt');
 //$cm_debug = fopen(CM_DEBUG_FILE, 'a');
 
@@ -214,13 +214,11 @@ function cm_update_moods($post_ID, $moods = null) {
 			$current_moods = cm_get_post_moods($post_ID);
 
 			// Diff the arrays and add any moods that weren't there before.
-//			$new_moods = array_diff($moods, $current_moods);
 			foreach( array_diff($moods, $current_moods) as $mood_id ) {
 				$wpdb->query("INSERT INTO $wpdb->postmeta (post_id,meta_key,meta_value) VALUES ('$post_ID','mood','". $wpdb->escape($mood_id) ."')");
 			}
 
 			// Diff the other way and remove any unchecked moods.
-//			$old_moods = array_diff($current_moods, $moods);
 			foreach( array_diff($current_moods, $moods) as $meta_id => $mood_id ) {
 				$wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_id = '$meta_id'");
 			}
