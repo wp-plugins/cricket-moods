@@ -347,7 +347,7 @@ function cm_install () {
 			end($mood_list);
 			add_option(CM_OPTION_INDEX, key($mood_list)+1 );
 		}
-		$wpdb->query("DROP $table_name");
+		$wpdb->query("DROP TABLE $table_name");
 	}
 
 	// Initialize the moods list if it doesn't already exist,
