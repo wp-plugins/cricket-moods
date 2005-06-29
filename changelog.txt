@@ -1,0 +1,16 @@
+=== Cricket Moods Changelog ===
+
+20050629: Version 1.1.0
+* Modified cm_update_moods to use WP's builtin meta functions.
+* Modified cm_get_post_moods to use WP's get_post_meta.
+* Moved the mood list to WP's option system.  Mucking about in the database is
+  no longer necessary.
+* Added an installer function that adds the inital mood list (if it doesn't
+  already exist) or upgrades the old moods table on plugin activation.
+* Modifying documentation to be wp-plugins.org compliant.
+
+20050504: Version 1.0.1
+* Minor cosmetic modifications.
+
+20050504: Version 1.0.0
+* Intitial release.

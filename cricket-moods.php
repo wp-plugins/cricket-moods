@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 1.0.1
+Version: 1.1.0
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -29,8 +29,17 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// The URL that contains your smilie images.  Must include a trailing slash.
-define('CM_IMAGE_DIR', '/wp-images/smilies/');
+// The name of the option key that contains the available moods.
+define('CM_OPTION_MOODS', 'cricketmoods_moods');
+// The name of the option key that contains the next mood id.
+define('CM_OPTION_INDEX', 'cricketmoods_index');
+// The name of the option key that contains the image dir.
+define('CM_OPTION_DIR', 'cricketmoods_dir');
+
+
+define('CM_IMAGE_DIR', get_option(CM_OPTION_DIR) );
+define('CM_META_KEY', 'mood');
+
 
 // These are used for writing various debug information to a file.  They are
 // currently unused.  So don't bother uncommenting them.
@@ -55,7 +64,7 @@ function cm_the_moods($separator=' &amp; ', $before = null, $after = null) {
 	global $wpdb;
 
 	// Get the moods for the current post.
-	$post_moods = get_post_custom_values('mood');
+	$post_moods = get_post_custom_values(CM_META_KEY);
 
 	if( !empty($post_moods) ) {
 		$count = count($post_moods) - 1;
@@ -99,7 +108,7 @@ is NULL.
 */
 function cm_has_moods($post_ID = null) {
 	if($post_ID === null) {
-		$post_moods = get_post_custom_values('mood');
+		$post_moods = get_post_custom_values(CM_META_KEY);
 		$post_moods = $post_moods[0];
 	}
 	else
@@ -113,28 +122,14 @@ function cm_has_moods($post_ID = null) {
 
 
 /**
-The functions after this line are not meant to be used outside of this plugin
-file.  But, if you really want to, you can.
-*/
-
-
-/**
 cm_process_moods
 
-Retrieves a list of available moods form the
+Retrieves a list of available moods from the
 database.  Returns them as an array in the form:
 	'mood_id' => ('mood_name' => 'The Mood Name', 'mood_image' => 'themoodimage.gif')
 */
 function cm_process_moods() {
-	global $wpdb;
-
-	$mood_list = array();
-
-	foreach( $wpdb->get_results("SELECT * FROM cm_moods ORDER BY mood_name", ARRAY_A) as $line ) {
-		$mood_list[ $line['mood_id'] ] = array('mood_name' => $line['mood_name'], 'mood_image' => $line['mood_image']);
-	}
-
-	return $mood_list;
+	return get_option(CM_OPTION_MOODS);
 }
 
 
@@ -166,25 +161,12 @@ cm_post_mood
 	$post_id = integer
 		ID number of the post to look up.
 
-Returns an associative array containing a post's
-mood IDs in the form of:
-	'meta_id' => 'mood_id'
+Returns an array containing a post's mood IDs.
 
 Modified version of WP's get_post_meta function.
 */
 function cm_get_post_moods($post_id) {
-	global $wpdb;
-
-	$metalist = $wpdb->get_results("SELECT meta_id,meta_value FROM $wpdb->postmeta WHERE post_id = '$post_id' AND meta_key = 'mood'", ARRAY_A);
-	$values = array();
-
-	if ($metalist) {
-		foreach ($metalist as $metarow) {
-			$values[$metarow['meta_id']] = $metarow['meta_value'];
-		}
-	}
-
-	return $values;
+	return get_post_meta($post_id, CM_META_KEY);
 }
 
 
@@ -201,7 +183,6 @@ $moods parameter is NULL, try to pull the moods
 from $_POST.
 */
 function cm_update_moods($post_ID, $moods = null) {
-	global $wpdb;
 
 	// If no $mood, pull from $_POST.
 	if(!$moods) {
@@ -215,25 +196,25 @@ function cm_update_moods($post_ID, $moods = null) {
 
 			// Diff the arrays and add any moods that weren't there before.
 			foreach( array_diff($moods, $current_moods) as $mood_id ) {
-				$wpdb->query("INSERT INTO $wpdb->postmeta (post_id,meta_key,meta_value) VALUES ('$post_ID','mood','". $wpdb->escape($mood_id) ."')");
+				add_post_meta($post_ID, CM_META_KEY, $mood_id);
 			}
 
-			// Diff the other way and remove any unchecked moods.
-			foreach( array_diff($current_moods, $moods) as $meta_id => $mood_id ) {
-				$wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_id = '$meta_id'");
+			// Diff the other way and remove any deselected moods.
+			foreach( array_diff($current_moods, $moods) as $mood_id ) {
+				delete_post_meta($post_ID, CM_META_KEY, $mood_id);
 			}
 		}
 
 		// If no moods were posted and no moods were passed, remove all moods
 		// from the post.
 		else {
-			$wpdb->query("DELETE FROM $wpdb->postmeta WHERE post_id = '$post_ID' AND meta_key = 'mood'");
+			delete_post_meta($post_ID, CM_META_KEY);
 		}
 
 	// If the post doesn't currently have any moods, don't bother diffing.
 	} elseif($moods) {
 		foreach($moods as $mood_id) {
-			$wpdb->query("INSERT INTO $wpdb->postmeta (post_id,meta_key,meta_value) VALUES ('$post_ID','mood','". $wpdb->escape($mood_id) ."')");
+			add_post_meta($post_ID, CM_META_KEY, $mood_id);
 		}
 	}
 
@@ -337,5 +318,68 @@ add_action('edit_form_advanced', 'cm_list_select_moods');
 
 // Include the stylesheet for the checkboxes.
 add_action('admin_head', 'cm_admin_style');
+
+
+// Initialize the mood list for first time installs, or upgrade an old database table.
+function cm_install () {
+	global $wpdb, $user_level;
+
+	get_currentuserinfo();
+	if ($user_level < 8) {
+		return;
+	}
+
+	$table_name = 'cm_moods';
+	$result = mysql_list_tables(DB_NAME);
+	$tables = array();
+	while ($row = mysql_fetch_row($result)) {
+		$tables[] = $row[0];
+	}
+
+	// Upgrade the old table to the option system.
+	if ( in_array($table_name, $tables) ) {
+		$mood_list = array();
+		foreach( $wpdb->get_results("SELECT * FROM $table_name ORDER BY mood_id", ARRAY_A) as $line ) {
+			$mood_list[ $line['mood_id'] ] = array('mood_name' => $line['mood_name'], 'mood_image' => $line['mood_image']);
+		}
+		if( count($mood_list) ) {
+			add_option(CM_OPTION_MOODS, $mood_list);
+			end($mood_list);
+			add_option(CM_OPTION_INDEX, key($mood_list)+1 );
+		}
+		$wpdb->query("DROP $table_name");
+	}
+
+	// Initialize the moods list if it doesn't already exist,
+	if ( get_option(CM_OPTION_MOODS) == false ) {
+		$inital_moods = array(
+			array('mood_name' => 'Esctatic', 'mood_image' => 'icon_biggrin.gif'),
+			array('mood_name' => 'Confused', 'mood_image' => 'icon_confused.gif'),
+			array('mood_name' => 'Cool', 'mood_image' => 'icon_cool.gif'),
+			array('mood_name' => 'Sad', 'mood_image' => 'icon_cry.gif'),
+			array('mood_name' => 'Alarmed', 'mood_image' => 'icon_eek.gif'),
+			array('mood_name' => 'Angry', 'mood_image' => 'icon_evil.gif'),
+			array('mood_name' => 'Bored', 'mood_image' => 'icon_neutral.gif'),
+			array('mood_name' => 'Playful', 'mood_image' => 'icon_razz.gif'),
+			array('mood_name' => 'Sickly', 'mood_image' => 'icon_sad.gif'),
+			array('mood_name' => 'Happy', 'mood_image' => 'icon_smile.gif'),
+			array('mood_name' => 'Surprised', 'mood_image' => 'icon_surprised.gif'),
+			array('mood_name' => 'Mischievous', 'mood_image' => 'icon_twisted.gif'),
+			array('mood_name' => 'Flirtatious', 'mood_image' => 'icon_wink.gif')
+		);
+
+		add_option(CM_OPTION_MOODS, $inital_moods);
+		update_option(CM_OPTION_INDEX, count($inital_moods) );
+	}
+
+	if ( get_option(CM_OPTION_DIR) == false ) {
+		add_option(CM_OPTION_DIR, '/wp-images/smilies/');
+	}
+
+}
+
+if ( isset($_GET['activate']) && $_GET['activate'] == 'true' ) {
+	add_action('init', 'cm_install');
+}
 
 ?>
