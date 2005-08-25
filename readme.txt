@@ -1,5 +1,5 @@
 === Cricket Moods ===
-Version: 1.1.0
+Version: 1.1.1
 Tags: mood, meta
 Website: http://dev.wp-plugins.org/wiki/CricketMoods
 
@@ -24,6 +24,11 @@ without modifying every post that uses that mood.
 3.  Activate the Cricket Moods plugin from the Plugin Management panel of
     WordPress.
 
+= Upgrading =
+
+This version of Cricket Moods converts the old 1.0.x DB mood table to the new
+wp_option format and deletes the old table automatically. Basically, it's
+plug-and-play.
 
 == Usage ==
 
