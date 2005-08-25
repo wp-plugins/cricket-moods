@@ -1,5 +1,11 @@
 === Cricket Moods Changelog ===
 
+20050824: Version 1.1.1, 1.0.2
+* Bug fix: the 'before' parameter of cm_the_moods() appeared before *every*
+  mood instead of just the first one. Thanks to Chinky Jew <chinkyjew@gmail.com>
+  for catching that.
+* Added HTML comment to admin styles.
+
 20050629: Version 1.1.0
 * Modified cm_update_moods to use WP's builtin meta functions.
 * Modified cm_get_post_moods to use WP's get_post_meta.
