@@ -74,7 +74,9 @@ function cm_the_moods($separator=' &amp; ', $before = null, $after = null) {
 
 		foreach( $post_moods as $i => $mood_id ) {
 			$mood_name = wptexturize($mood_list[$mood_id]['mood_name']);
-			echo $before;
+			if( $i == 0 ) {
+				echo $before;
+			}
 
 			// Only print the img tag if the mood has an associated image.
 			if( !empty( $mood_list[$mood_id]['mood_image'] ) ) {
