@@ -29,13 +29,18 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+/** !! **************************************************
+ * It is not necessary to modify anything in this file. *
+ ************************************************** !! **/
+
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
 define('CM_OPTION_INDEX', 'cricketmoods_index');
 // The name of the option key that contains the image dir.
 define('CM_OPTION_DIR', 'cricketmoods_dir');
-
+// The name of the option key that contains the autoprint setting.
+define('CM_OPTION_AUTOPRINT', 'cricketmoods_autoprint');
 
 define('CM_IMAGE_DIR', get_option(CM_OPTION_DIR) );
 define('CM_META_KEY', 'mood');
@@ -127,7 +132,8 @@ function cm_has_moods($post_ID = null) {
 cm_process_moods
 
 Retrieves a list of available moods from the
-database.  Returns them as an array in the form:
+database.  Returns them as a multi-dimensional
+array in the form:
 	'mood_id' => ('mood_name' => 'The Mood Name', 'mood_image' => 'themoodimage.gif')
 */
 function cm_process_moods() {
@@ -158,7 +164,7 @@ function cm_get_posted_moods() {
 
 
 /**
-cm_post_mood
+cm_get_post_mood
 
 	$post_id = integer
 		ID number of the post to look up.
@@ -191,6 +197,7 @@ function cm_update_moods($post_ID, $moods = null) {
 		$moods = cm_get_posted_moods();
 	}
 
+	// If the current post already has moods associated with it.
 	if( cm_has_moods($post_ID) ) {
 		if($moods) {
 			// Find out what moods the post currently has.
@@ -313,6 +320,7 @@ function cm_admin_style() { ?>
 
 #cm_options_panel table {
 	text-align: center;
+	width: 100%;
 }
 </style>
 <!-- end Cricket Moods -->
@@ -327,10 +335,13 @@ function cm_admin_add_panel() {
 }
 
 function cm_admin_panel() { ?>
-	<div class="wrap" id="cm_options_panel">
+<div class="wrap" id="cm_options_panel">
 <?php
-	if ( isset($_POST['cm_options_update']) ) { ?>
-<div class="updated"><p></p></div><?php
+	if ( isset($_POST['cm_options_update']) ) {
+?>
+	<div class="updated"><p>Options updated!</p></div>
+	<p><pre><?php print_r($_POST) ?></pre></p>
+<?php
 	}
 ?>
 
@@ -338,13 +349,13 @@ function cm_admin_panel() { ?>
 
 <p><strong>This is all just a prototype.  It doesn't work.</strong></p>
 
-<form>
+<form method="post">
 <fieldset>
 	<legend>General Options</legend>
 	<p><label for="cm_image_dir">Smilie image directory:</label><br/>
-	<input type="text" id="cm_image_dir" value="<?php echo CM_IMAGE_DIR ?>"/><br/>
+	<input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo CM_IMAGE_DIR ?>"/><br/>
 	Directory containing the images associated with the moods.</p>
-	<p><input type="checkbox" id="cm_auto_print"/><label for="cm_auto_print">Automatically print moods</label><br/>
+	<p><input type="checkbox" id="cm_auto_print" name="cm_auto_print"/><label for="cm_auto_print">Automatically print moods</label><br/>
 	Causes Cricket Moods to automatically display the moods without the need to modify the template.  Works best with the default WordPress template.</p>
 </fieldset>
 <fieldset>
@@ -353,33 +364,34 @@ function cm_admin_panel() { ?>
 	<table>
 		<tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr>
 <?php
-	for ($i=1; $i < 11; $i++) {
+	foreach ( cm_process_moods() as $id => $mood ) {
 ?>
-		<tr>
-			<td><? echo $i ?></td>
-			<td><input type="text" value="Happy"/></td>
-			<td><input type="text" value="happy.gif"/></td>
-			<td><input type="checkbox"/></td>
+		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?>>
+			<td><?php echo $id ?></td>
+			<td><input type="text" name="cm_name_<?php echo $id ?>" value="<?php echo $mood['mood_name'] ?>"/></td>
+			<td><input type="text" name="cm_image_<?php echo $id ?>" value="<?php echo $mood['mood_image'] ?>"/></td>
+			<td><input type="checkbox" name="cm_delete_<?php echo $id ?>" /></td>
 		</tr>
 <?php
 	}
 ?>
 <?php
-	for ($i=0; $i < 5; $i++) {
+	$index = get_option(CM_OPTION_INDEX);
+	for ($i = $index; $i <= $index+5; $i++) {
 ?>
-		<tr>
-			<td>1</td>
-			<td><input type="text"/></td>
-			<td><input type="text"/></td>
-			<td><input type="checkbox"/></td>
+		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?>>
+			<td><?php echo $i ?></td>
+			<td><input type="text" name="cm_new_name_<?php echo $i ?>"/></td>
+			<td><input type="text" name="cm_new_image_<?php echo $i ?>"/></td>
+			<td>-</td>
 		</tr>
 <?php
 	}
 ?>
 	</table>
-	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
+	<p><strong>Deleting a mood will also remove any references to that mood from your posts (eventually).</strong></p>
 </fieldset>
-<input type="submit" value="Update Options"/>
+<input type="submit" name="cm_options_update" value="Update Options"/>
 </form>
 
 </div>
