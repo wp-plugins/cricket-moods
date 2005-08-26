@@ -306,11 +306,85 @@ function cm_admin_style() { ?>
 	text-align: justify;
 	padding-bottom: .5em;
 }
+
+#cm_options_panel label {
+	font-weight: bold;
+}
+
+#cm_options_panel table {
+	text-align: center;
+}
 </style>
 <!-- end Cricket Moods -->
 
 <?php } // cm_admin_style
 
+
+function cm_admin_add_panel() {
+	if ( function_exists('add_options_page') ) {
+		add_options_page('Cricket Moods', 'Cricket Moods', 8, basename(__FILE__), 'cm_admin_panel');
+	}
+}
+
+function cm_admin_panel() { ?>
+	<div class="wrap" id="cm_options_panel">
+<?php
+	if ( isset($_POST['cm_options_update']) ) { ?>
+<div class="updated"><p></p></div><?php
+	}
+?>
+
+<h2>Cricket Moods</h2>
+
+<p><strong>This is all just a prototype.  It doesn't work.</strong></p>
+
+<form>
+<fieldset>
+	<legend>General Options</legend>
+	<p><label for="cm_image_dir">Smilie image directory:</label><br/>
+	<input type="text" id="cm_image_dir" value="<?php echo CM_IMAGE_DIR ?>"/><br/>
+	Directory containing the images associated with the moods.</p>
+	<p><input type="checkbox" id="cm_auto_print"/><label for="cm_auto_print">Automatically print moods</label><br/>
+	Causes Cricket Moods to automatically display the moods without the need to modify the template.  Works best with the default WordPress template.</p>
+</fieldset>
+<fieldset>
+	<legend>Moods</legend>
+
+	<table>
+		<tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr>
+<?php
+	for ($i=1; $i < 11; $i++) {
+?>
+		<tr>
+			<td><? echo $i ?></td>
+			<td><input type="text" value="Happy"/></td>
+			<td><input type="text" value="happy.gif"/></td>
+			<td><input type="checkbox"/></td>
+		</tr>
+<?php
+	}
+?>
+<?php
+	for ($i=0; $i < 5; $i++) {
+?>
+		<tr>
+			<td>1</td>
+			<td><input type="text"/></td>
+			<td><input type="text"/></td>
+			<td><input type="checkbox"/></td>
+		</tr>
+<?php
+	}
+?>
+	</table>
+	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
+</fieldset>
+<input type="submit" value="Update Options"/>
+</form>
+
+</div>
+
+<?php } // cm_admin_panel
 
 // Update the moods whenever a post is saved or edited.
 add_action('save_post', 'cm_update_moods');
@@ -322,6 +396,7 @@ add_action('edit_form_advanced', 'cm_list_select_moods');
 
 // Include the stylesheet for the checkboxes.
 add_action('admin_head', 'cm_admin_style');
+add_action('admin_menu', 'cm_admin_add_panel');
 
 
 // Initialize the mood list for first time installs, or upgrade an old database table.
