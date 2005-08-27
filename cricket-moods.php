@@ -101,6 +101,7 @@ function cm_the_moods($separator=' &amp; ', $before = null, $after = null) {
 } // cm_the_moods
 
 
+
 /**
 cm_has_moods
 
@@ -128,6 +129,7 @@ function cm_has_moods($post_ID = null) {
 }
 
 
+
 /**
 cm_process_moods
 
@@ -139,6 +141,7 @@ array in the form:
 function cm_process_moods() {
 	return get_option(CM_OPTION_MOODS);
 }
+
 
 
 /**
@@ -163,6 +166,7 @@ function cm_get_posted_moods() {
 }
 
 
+
 /**
 cm_get_post_mood
 
@@ -176,6 +180,7 @@ Modified version of WP's get_post_meta function.
 function cm_get_post_moods($post_id) {
 	return get_post_meta($post_id, CM_META_KEY);
 }
+
 
 
 /**
@@ -231,6 +236,12 @@ function cm_update_moods($post_ID, $moods = null) {
 } // cm_update_moods
 
 
+// Update the moods whenever a post is saved or edited.
+add_action('save_post', 'cm_update_moods');
+add_action('edit_post', 'cm_update_moods');
+
+
+
 /**
 cm_list_select_moods
 
@@ -279,6 +290,31 @@ function cm_list_select_moods() {
 } // cm_list_select_moods
 
 
+// Display the mood checkboxes in the edit forms.
+add_action('simple_edit_form', 'cm_list_select_moods');
+add_action('edit_form_advanced', 'cm_list_select_moods');
+
+
+
+/**
+cm_auto_moods
+
+Used if the AutoPrint option is enabled.
+*/
+function cm_auto_moods($time) {
+	echo $time;
+	cm_the_moods(' &amp; ', '<br/>Current Mood: ');
+}
+
+
+// AutoPrint after the_time if the option is enabled.
+// is_admin() didn't work here...
+if ( strpos($_SERVER['PHP_SELF'], 'wp-admin/') === false && get_option(CM_OPTION_AUTOPRINT) == "1" ) {
+	add_filter('the_time', 'cm_auto_moods');
+}
+
+
+
 /**
 cm_admin_style
 
@@ -320,7 +356,7 @@ function cm_admin_style() { ?>
 
 #cm_options_panel table {
 	text-align: center;
-	width: 100%;
+	width: 90%;
 }
 
 #cm_options_panel .delete:hover {
@@ -333,12 +369,33 @@ function cm_admin_style() { ?>
 <?php } // cm_admin_style
 
 
+// Include the stylesheet for the CM admin areas.
+add_action('admin_head', 'cm_admin_style');
+
+
+
+/**
+cm_admin_add_panel
+
+Adds the option page if it's supported.
+*/
 function cm_admin_add_panel() {
 	if ( function_exists('add_options_page') ) {
 		add_options_page('Cricket Moods', 'Cricket Moods', 8, basename(__FILE__), 'cm_admin_panel');
 	}
 }
 
+
+// Add the panel to the admin menu.
+add_action('admin_menu', 'cm_admin_add_panel');
+
+
+
+/**
+cm_admin_panel
+
+The option page.
+*/
 function cm_admin_panel() {
 	global $wpdb, $table_prefix;
 ?>
@@ -436,21 +493,14 @@ function cm_admin_panel() {
 <?php } ?><?php // cm_admin_panel -- Wierd, but intentional.  Don't ask.
 
 
-// Update the moods whenever a post is saved or edited.
-add_action('save_post', 'cm_update_moods');
-add_action('edit_post', 'cm_update_moods');
 
-// Display the mood checkboxes in the edit forms.
-add_action('simple_edit_form', 'cm_list_select_moods');
-add_action('edit_form_advanced', 'cm_list_select_moods');
+/**
+cm_install
 
-// Include the stylesheet for the checkboxes.
-add_action('admin_head', 'cm_admin_style');
-add_action('admin_menu', 'cm_admin_add_panel');
-
-
-// Initialize the mood list for first time installs, or upgrade an old database table.
-function cm_install () {
+Initialize the mood list for first time installs,
+or upgrade an old database table.
+*/
+function cm_install() {
 	global $wpdb, $user_level;
 
 	get_currentuserinfo();
@@ -504,11 +554,18 @@ function cm_install () {
 	if ( get_option(CM_OPTION_DIR) == false ) {
 		add_option(CM_OPTION_DIR, '/wp-images/smilies/');
 	}
+	if ( get_option(CM_OPTION_AUTOPRINT) == false ) {
+		add_option(CM_OPTION_AUTOPRINT, 1);
+	}
 
 }
 
+
+// If the plugin was just activated, perform the install.
 if ( isset($_GET['activate']) && $_GET['activate'] == 'true' ) {
 	add_action('init', 'cm_install');
 }
+
+
 
 ?>
