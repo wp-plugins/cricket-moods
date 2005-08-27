@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 1.1.1
+Version: 2.0
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -41,6 +41,12 @@ define('CM_OPTION_INDEX', 'cricketmoods_index');
 define('CM_OPTION_DIR', 'cricketmoods_dir');
 // The name of the option key that contains the autoprint setting.
 define('CM_OPTION_AUTOPRINT', 'cricketmoods_autoprint');
+
+/* Removing presentation options.
+define('CM_OPTION_BEFORE', 'cricketmoods_before');
+define('CM_OPTION_SEPARATOR', 'cricketmoods_separator');
+define('CM_OPTION_AFTER', 'cricketmoods_after');
+*/
 
 define('CM_IMAGE_DIR', get_option(CM_OPTION_DIR) );
 define('CM_META_KEY', 'mood');
@@ -243,6 +249,39 @@ add_action('edit_post', 'cm_update_moods');
 
 
 /**
+cm_update_option
+
+A slight modification of WP's update_option().
+Sometimes, you *don't* want to trim.
+*/
+/* Removing presentation options.
+function cm_update_option($option_name, $newvalue) {
+	global $wpdb, $cache_settings;
+	if ( is_array($newvalue) || is_object($newvalue) )
+		$newvalue = serialize($newvalue);
+
+//	$newvalue = trim($newvalue); // I can't think of any situation we wouldn't want to trim
+	// kccricket says: Good for you, I can.
+
+    // If the new and old values are the same, no need to update.
+    if ($newvalue == get_option($option_name)) {
+        return true;
+    }
+
+	// If it's not there add it
+	if ( !$wpdb->get_var("SELECT option_name FROM $wpdb->options WHERE option_name = '$option_name'") )
+		add_option($option_name);
+
+	$newvalue = $wpdb->escape($newvalue);
+	$wpdb->query("UPDATE $wpdb->options SET option_value = '$newvalue' WHERE option_name = '$option_name'");
+	$cache_settings = get_alloptions(); // Re cache settings
+	return true;
+}
+*/
+
+
+
+/**
 cm_list_select_moods
 
 Prints a fieldset full of checkboxes.  Each
@@ -356,7 +395,7 @@ function cm_admin_style() { ?>
 
 #cm_options_panel table {
 	text-align: center;
-	width: 90%;
+	width: 100%;
 }
 
 #cm_options_panel .delete:hover {
@@ -404,6 +443,9 @@ function cm_admin_panel() {
 <?php
 	if ( isset($_POST['cm_options_update']) ) {
 		if ( !empty($_POST['cm_image_dir'] ) ) {
+			if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
+				$_POST['cm_image_dir'] .= '/';
+			}
 			update_option(CM_OPTION_DIR, stripslashes($_POST['cm_image_dir']) );
 		}
 		if ( !empty($_POST['cm_auto_print'] ) ) {
@@ -412,15 +454,21 @@ function cm_admin_panel() {
 			update_option(CM_OPTION_AUTOPRINT, 0);
 		}
 
+/* Removing presentation options.
+		cm_update_option(CM_OPTION_BEFORE, stripslashes($_POST['cm_before']) );
+		cm_update_option(CM_OPTION_SEPARATOR, stripslashes($_POST['cm_separator']) );
+		cm_update_option(CM_OPTION_AFTER, stripslashes($_POST['cm_after']) );
+*/
+
 		$mood_list = cm_process_moods();
 
 		// Parse the $_POST for the CM options we want.
 		foreach ($_POST as $name => $value) {
 			if ( substr($name, 0, 6) == 'cm_id_' ) {
-				if ( !empty( $_POST["cm_delete_$value"] ) ) {
+				if ( !empty($_POST["cm_delete_$value"]) ) {
 					unset($mood_list[$value]);
 					$wpdb->query("DELETE FROM `{$table_prefix}postmeta` WHERE `meta_key`='mood' AND `meta_value`='$value'");
-				} else {
+				} elseif ( !empty($_POST["cm_name_$value"]) || !empty($_POST["cm_image_$value"]) ) {
 					$mood_list[$value]['mood_name'] = stripslashes($_POST["cm_name_$value"]);
 					$mood_list[$value]['mood_image'] = stripslashes($_POST["cm_image_$value"]);
 				}
@@ -446,14 +494,37 @@ function cm_admin_panel() {
 <form method="post">
 <fieldset class="options">
 	<legend>General Options</legend>
-	<p><label for="cm_image_dir">Smilie image directory:</label><br/>
+	<ul>
+	<li><label for="cm_image_dir">Smilie image directory:</label><br/>
 	<input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo get_option(CM_OPTION_DIR) ?>"/><br/>
-	Directory containing the images associated with the moods.</p>
-	<p><input type="checkbox" id="cm_auto_print" name="cm_auto_print" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "1" ) echo 'checked="true"' ?>/> <label for="cm_auto_print">Automatically print moods <strong>(not used)</strong></label><br/>
-	Causes Cricket Moods to automatically display moods without the need to modify the active template.  Works best with the default WordPress theme.  Uncheck if you've added <code>cm_the_moods()</code> to your template(s).</p>
+	Directory containing the images associated with the moods.</li>
+	<li><input type="checkbox" id="cm_auto_print" name="cm_auto_print" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "1" ) echo 'checked="true"' ?>/> <label for="cm_auto_print">Automatically print moods</label><br/>
+	Causes Cricket Moods to automatically display moods directly after each post's time without the need to modify the active template.  Works best with the default WordPress theme.  Uncheck if you've manually added <code>cm_the_moods()</code> to your template(s).</li>
+	<ul>
 </fieldset>
+<?php /* Removing presentation options.
+<fieldset class="options">
+	<legend>Presentation</legend>
+	<strong>Leave these options blank to use the default values.</strong>
+	<ul>
+	<li><label for="cm_before">Text to place before the first mood:</label><br/>
+	<input type="text" id="cm_before" name="cm_before" value="<?php echo htmlspecialchars(get_option(CM_OPTION_BEFORE) ) ?>"/><br/>
+	Default: <code>'Current Mood: '</code></li>
+	<li><label for="cm_separator">Text to place in between multiple moods:</label><br/>
+	<input type="text" id="cm_separator" name="cm_separator" value="<?php echo htmlspecialchars(get_option(CM_OPTION_SEPARATOR) ) ?>"/><br/>
+	Will only display if the current post has two or more moods.<br/>
+	Default: <code>' &amp;amp; '</code></li>
+	<li><label for="cm_after">Text to place after the last mood:</label><br/>
+	<input type="text" id="cm_after" name="cm_after" value="<?php echo htmlspecialchars(get_option(CM_OPTION_AFTER) ) ?>"/><br/>
+	Default: <em>(blank)</em></li>
+	</ul>
+</fieldset>
+*/ ?>
 <fieldset class="options">
 	<legend>Moods</legend>
+
+	<p>Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.</p>
+	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
 
 	<table>
 		<thead><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></thead>
@@ -484,7 +555,7 @@ function cm_admin_panel() {
 	}
 ?>
 	</table>
-	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
+	<p>If you need to add more than five new moods, just click "Update Options" and five more blank lines will be available.</p>
 </fieldset>
 <input type="submit" name="cm_options_update" value="Update Options"/>
 </form>
