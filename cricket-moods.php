@@ -322,6 +322,11 @@ function cm_admin_style() { ?>
 	text-align: center;
 	width: 100%;
 }
+
+#cm_options_panel .delete:hover {
+	background-color: #c00;
+}
+
 </style>
 <!-- end Cricket Moods -->
 
@@ -334,43 +339,76 @@ function cm_admin_add_panel() {
 	}
 }
 
-function cm_admin_panel() { ?>
+function cm_admin_panel() {
+	global $wpdb, $table_prefix;
+?>
 <div class="wrap" id="cm_options_panel">
+
 <?php
 	if ( isset($_POST['cm_options_update']) ) {
+		if ( !empty($_POST['cm_image_dir'] ) ) {
+			update_option(CM_OPTION_DIR, stripslashes($_POST['cm_image_dir']) );
+		}
+		if ( !empty($_POST['cm_auto_print'] ) ) {
+			update_option(CM_OPTION_AUTOPRINT, 1);
+		} else {
+			update_option(CM_OPTION_AUTOPRINT, 0);
+		}
+
+		$mood_list = cm_process_moods();
+
+		// Parse the $_POST for the CM options we want.
+		foreach ($_POST as $name => $value) {
+			if ( substr($name, 0, 6) == 'cm_id_' ) {
+				if ( !empty( $_POST["cm_delete_$value"] ) ) {
+					unset($mood_list[$value]);
+					$wpdb->query("DELETE FROM `{$table_prefix}postmeta` WHERE `meta_key`='mood' AND `meta_value`='$value'");
+				} else {
+					$mood_list[$value]['mood_name'] = stripslashes($_POST["cm_name_$value"]);
+					$mood_list[$value]['mood_image'] = stripslashes($_POST["cm_image_$value"]);
+				}
+			}
+			elseif ( substr($name, 0, 10) == 'cm_new_id_' && ( !empty($_POST["cm_new_name_$value"]) || !empty($_POST["cm_new_image_$value"]) ) ) {
+				$mood_list[$value] = array( 'mood_name' => stripslashes($_POST["cm_new_name_$value"]), 'mood_image' => stripslashes($_POST["cm_new_image_$value"]) );
+				$next_index = $value + 1;
+			}
+		}
+
+		if ( isset($next_index) ) {
+			update_option(CM_OPTION_INDEX, $next_index);
+		}
+		update_option(CM_OPTION_MOODS, $mood_list);
 ?>
 	<div class="updated"><p>Options updated!</p></div>
-	<p><pre><?php print_r($_POST) ?></pre></p>
 <?php
 	}
 ?>
 
 <h2>Cricket Moods</h2>
 
-<p><strong>This is all just a prototype.  It doesn't work.</strong></p>
-
 <form method="post">
-<fieldset>
+<fieldset class="options">
 	<legend>General Options</legend>
 	<p><label for="cm_image_dir">Smilie image directory:</label><br/>
-	<input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo CM_IMAGE_DIR ?>"/><br/>
+	<input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo get_option(CM_OPTION_DIR) ?>"/><br/>
 	Directory containing the images associated with the moods.</p>
-	<p><input type="checkbox" id="cm_auto_print" name="cm_auto_print"/><label for="cm_auto_print">Automatically print moods</label><br/>
-	Causes Cricket Moods to automatically display the moods without the need to modify the template.  Works best with the default WordPress template.</p>
+	<p><input type="checkbox" id="cm_auto_print" name="cm_auto_print" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "1" ) echo 'checked="true"' ?>/> <label for="cm_auto_print">Automatically print moods <strong>(not used)</strong></label><br/>
+	Causes Cricket Moods to automatically display moods without the need to modify the active template.  Works best with the default WordPress theme.  Uncheck if you've added <code>cm_the_moods()</code> to your template(s).</p>
 </fieldset>
-<fieldset>
+<fieldset class="options">
 	<legend>Moods</legend>
 
 	<table>
-		<tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr>
+		<thead><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></thead>
+		<tfoot><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></tfoot>
 <?php
 	foreach ( cm_process_moods() as $id => $mood ) {
 ?>
-		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?>>
-			<td><?php echo $id ?></td>
+		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
+			<td><?php echo $id ?><input type="hidden" name="cm_id_<?php echo $id ?>" value="<?php echo $id ?>"/></td>
 			<td><input type="text" name="cm_name_<?php echo $id ?>" value="<?php echo $mood['mood_name'] ?>"/></td>
 			<td><input type="text" name="cm_image_<?php echo $id ?>" value="<?php echo $mood['mood_image'] ?>"/></td>
-			<td><input type="checkbox" name="cm_delete_<?php echo $id ?>" /></td>
+			<td class="delete"><input type="checkbox" name="cm_delete_<?php echo $id ?>"/></td>
 		</tr>
 <?php
 	}
@@ -379,8 +417,8 @@ function cm_admin_panel() { ?>
 	$index = get_option(CM_OPTION_INDEX);
 	for ($i = $index; $i <= $index+5; $i++) {
 ?>
-		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?>>
-			<td><?php echo $i ?></td>
+		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
+			<td><?php echo $i ?><input type="hidden" name="cm_new_id_<?php echo $i ?>" value="<?php echo $i ?>"/></td>
 			<td><input type="text" name="cm_new_name_<?php echo $i ?>"/></td>
 			<td><input type="text" name="cm_new_image_<?php echo $i ?>"/></td>
 			<td>-</td>
@@ -389,14 +427,14 @@ function cm_admin_panel() { ?>
 	}
 ?>
 	</table>
-	<p><strong>Deleting a mood will also remove any references to that mood from your posts (eventually).</strong></p>
+	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
 </fieldset>
 <input type="submit" name="cm_options_update" value="Update Options"/>
 </form>
 
 </div>
+<?php } ?><?php // cm_admin_panel -- Wierd, but intentional.  Don't ask.
 
-<?php } // cm_admin_panel
 
 // Update the moods whenever a post is saved or edited.
 add_action('save_post', 'cm_update_moods');
