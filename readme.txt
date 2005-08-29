@@ -91,8 +91,9 @@ Not that I know of.  I certainly didn't program one in.
 
 == Screenshots ==
 
-1.  An example of the moods output in action.
+1.  An example of a blog post with moods as the reader sees it.
 2.  A view of the "Write Post" screen with the selectable moods.
+3.  The options panel.
 
 
 == Change Log ==
