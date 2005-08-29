@@ -42,7 +42,7 @@ define('CM_OPTION_DIR', 'cricketmoods_dir');
 // The name of the option key that contains the autoprint setting.
 define('CM_OPTION_AUTOPRINT', 'cricketmoods_autoprint');
 
-/* Removing presentation options.
+/* Removing presentation options.  I need to think this through.
 define('CM_OPTION_BEFORE', 'cricketmoods_before');
 define('CM_OPTION_SEPARATOR', 'cricketmoods_separator');
 define('CM_OPTION_AFTER', 'cricketmoods_after');
@@ -180,8 +180,6 @@ cm_get_post_mood
 		ID number of the post to look up.
 
 Returns an array containing a post's mood IDs.
-
-Modified version of WP's get_post_meta function.
 */
 function cm_get_post_moods($post_id) {
 	return get_post_meta($post_id, CM_META_KEY);
@@ -348,7 +346,7 @@ function cm_auto_moods($time) {
 
 // AutoPrint after the_time if the option is enabled.
 // is_admin() didn't work here...
-if ( strpos($_SERVER['PHP_SELF'], 'wp-admin/') === false && get_option(CM_OPTION_AUTOPRINT) == "1" ) {
+if ( strpos($_SERVER['PHP_SELF'], 'wp-admin/') === false && get_option(CM_OPTION_AUTOPRINT) == "on" ) {
 	add_filter('the_time', 'cm_auto_moods');
 }
 
@@ -375,10 +373,6 @@ function cm_admin_style() { ?>
 	background-color: #ddd;
 }
 
-#cm_moodlist input {
-
-}
-
 #cm_moodlist img {
 	vertical-align: middle;
 	padding-right: 2px;
@@ -401,7 +395,6 @@ function cm_admin_style() { ?>
 #cm_options_panel .delete:hover {
 	background-color: #c00;
 }
-
 </style>
 <!-- end Cricket Moods -->
 
@@ -436,22 +429,64 @@ cm_admin_panel
 The option page.
 */
 function cm_admin_panel() {
+	// Display the table of available mood images.
+	if ($_GET['images'] == "true") {
+		$d = dir($_SERVER['DOCUMENT_ROOT'].CM_IMAGE_DIR);
+		while ( $entry = $d->read() ) {
+			if ( eregi('\.gif|\.png|\.jp(g|eg?)', $entry) ) {
+				$files[$entry] = CM_IMAGE_DIR . $entry;
+			}
+		}
+		$d->close();
+		natcasesort($files);
+		reset($files);
+?>
+
+<div class="wrap" id="cm_options_panel">
+<table style="text-align: center; width: 100%;">
+<?
+		$i = 0;
+		foreach ($files as $n => $s) {
+			if ($i == 0) {
+				echo '<tr>';
+			}
+			echo "<td><img src='$s' style='padding-top: 1em;'><br/>$n</td>";
+			$i++;
+			if ($i == 7) {
+				echo '</tr>';
+				$i = 0;
+			}
+		}
+?>
+</table>
+</div>
+
+<?php
+		return;
+	} // End if list mood images.
+
+	// Proceed with the options panel.
 	global $wpdb, $table_prefix;
 ?>
 <div class="wrap" id="cm_options_panel">
 
 <?php
+	// If the user pushed the update button.
 	if ( isset($_POST['cm_options_update']) ) {
+		// We don't like a blank image directory.
 		if ( !empty($_POST['cm_image_dir'] ) ) {
+			// Add a trailing slash if it doesn't have one.
 			if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
 				$_POST['cm_image_dir'] .= '/';
 			}
 			update_option(CM_OPTION_DIR, stripslashes($_POST['cm_image_dir']) );
 		}
+
+		// Pretty obvious.  Set or unset the autoprint option.
 		if ( !empty($_POST['cm_auto_print'] ) ) {
-			update_option(CM_OPTION_AUTOPRINT, 1);
+			update_option(CM_OPTION_AUTOPRINT, "on");
 		} else {
-			update_option(CM_OPTION_AUTOPRINT, 0);
+			update_option(CM_OPTION_AUTOPRINT, "off");
 		}
 
 /* Removing presentation options.
@@ -460,33 +495,47 @@ function cm_admin_panel() {
 		cm_update_option(CM_OPTION_AFTER, stripslashes($_POST['cm_after']) );
 */
 
+		// Get the pre-modified list of moods.
 		$mood_list = cm_process_moods();
 
 		// Parse the $_POST for the CM options we want.
 		foreach ($_POST as $name => $value) {
+
+			// Existing moods start with 'cm_id_'.
 			if ( substr($name, 0, 6) == 'cm_id_' ) {
+				// If the user chose to delete this mood, delete the mood and any references to it.
 				if ( !empty($_POST["cm_delete_$value"]) ) {
 					unset($mood_list[$value]);
 					$wpdb->query("DELETE FROM `{$table_prefix}postmeta` WHERE `meta_key`='mood' AND `meta_value`='$value'");
+
+				// Otherwise, update the mood name and image if both the name and the image are not blank.
 				} elseif ( !empty($_POST["cm_name_$value"]) || !empty($_POST["cm_image_$value"]) ) {
 					$mood_list[$value]['mood_name'] = stripslashes($_POST["cm_name_$value"]);
 					$mood_list[$value]['mood_image'] = stripslashes($_POST["cm_image_$value"]);
 				}
 			}
+
+			// New moods start with 'cm_new_id_' and should have either a name or and image.
 			elseif ( substr($name, 0, 10) == 'cm_new_id_' && ( !empty($_POST["cm_new_name_$value"]) || !empty($_POST["cm_new_image_$value"]) ) ) {
+				// Add the new mood to the mood list.
 				$mood_list[$value] = array( 'mood_name' => stripslashes($_POST["cm_new_name_$value"]), 'mood_image' => stripslashes($_POST["cm_new_image_$value"]) );
+				// Increment the mood id index.
 				$next_index = $value + 1;
 			}
 		}
 
+		// If the user added new moods $next_index will exist.  Update the option containing the index.
 		if ( isset($next_index) ) {
 			update_option(CM_OPTION_INDEX, $next_index);
 		}
+
+		// Finally, update the mood list.
 		update_option(CM_OPTION_MOODS, $mood_list);
+
 ?>
 	<div class="updated"><p>Options updated!</p></div>
 <?php
-	}
+	} // End if update button pushed.
 ?>
 
 <h2>Cricket Moods</h2>
@@ -495,10 +544,10 @@ function cm_admin_panel() {
 <fieldset class="options">
 	<legend>General Options</legend>
 	<ul>
-	<li><label for="cm_image_dir">Smilie image directory:</label><br/>
+	<li><label for="cm_image_dir">Mood image directory:</label><br/>
 	<input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo get_option(CM_OPTION_DIR) ?>"/><br/>
 	Directory containing the images associated with the moods.</li>
-	<li><input type="checkbox" id="cm_auto_print" name="cm_auto_print" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "1" ) echo 'checked="true"' ?>/> <label for="cm_auto_print">Automatically print moods</label><br/>
+	<li><input type="checkbox" id="cm_auto_print" name="cm_auto_print" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "on" ) echo 'checked="true"' ?>/> <label for="cm_auto_print">Automatically print moods</label><br/>
 	Causes Cricket Moods to automatically display moods directly after each post's time without the need to modify the active template.  Works best with the default WordPress theme.  Uncheck if you've manually added <code>cm_the_moods()</code> to your template(s).</li>
 	<ul>
 </fieldset>
@@ -523,13 +572,14 @@ function cm_admin_panel() {
 <fieldset class="options">
 	<legend>Moods</legend>
 
-	<p>Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.</p>
+	<p>Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&images=true' ?>" target="_blank">available mood images</a> in the mood image directory.</p>
 	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
 
 	<table>
 		<thead><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></thead>
 		<tfoot><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></tfoot>
 <?php
+	// List the existing moods.
 	foreach ( cm_process_moods() as $id => $mood ) {
 ?>
 		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
@@ -542,6 +592,7 @@ function cm_admin_panel() {
 	}
 ?>
 <?php
+	// Add blank rows for new moods.
 	$index = get_option(CM_OPTION_INDEX);
 	for ($i = $index; $i <= $index+5; $i++) {
 ?>
@@ -561,7 +612,7 @@ function cm_admin_panel() {
 </form>
 
 </div>
-<?php } ?><?php // cm_admin_panel -- Wierd, but intentional.  Don't ask.
+<?php } // cm_admin_panel
 
 
 
@@ -574,11 +625,13 @@ or upgrade an old database table.
 function cm_install() {
 	global $wpdb, $user_level;
 
+	// Make sure we're authorized to do this.
 	get_currentuserinfo();
 	if ($user_level < 8) {
 		return;
 	}
 
+	// The old 1.0.x mood table was named:
 	$table_name = 'cm_moods';
 	$result = mysql_list_tables(DB_NAME);
 	$tables = array();
@@ -586,7 +639,7 @@ function cm_install() {
 		$tables[] = $row[0];
 	}
 
-	// Upgrade the old table to the option system.
+	// Upgrade the old table to the option system if it exists.
 	if ( in_array($table_name, $tables) ) {
 		$mood_list = array();
 		foreach( $wpdb->get_results("SELECT * FROM $table_name ORDER BY mood_id", ARRAY_A) as $line ) {
@@ -601,7 +654,7 @@ function cm_install() {
 	}
 
 	// Initialize the moods list if it doesn't already exist,
-	if ( get_option(CM_OPTION_MOODS) == false ) {
+	if ( !get_option(CM_OPTION_MOODS) ) {
 		$inital_moods = array(
 			array('mood_name' => 'Esctatic', 'mood_image' => 'icon_biggrin.gif'),
 			array('mood_name' => 'Confused', 'mood_image' => 'icon_confused.gif'),
@@ -622,11 +675,11 @@ function cm_install() {
 		update_option(CM_OPTION_INDEX, count($inital_moods) );
 	}
 
-	if ( get_option(CM_OPTION_DIR) == false ) {
+	if ( !get_option(CM_OPTION_DIR) ) {
 		add_option(CM_OPTION_DIR, '/wp-images/smilies/');
 	}
-	if ( get_option(CM_OPTION_AUTOPRINT) == false ) {
-		add_option(CM_OPTION_AUTOPRINT, 1);
+	if ( !get_option(CM_OPTION_AUTOPRINT) ) {
+		add_option(CM_OPTION_AUTOPRINT, "on");
 	}
 
 }

@@ -1,27 +1,25 @@
 === Cricket Moods ===
-Version: 1.1.1
+Version: 2.0
 Tags: mood, meta
 Website: http://dev.wp-plugins.org/wiki/CricketMoods
 
-Cricket Moods is a WordPress plugin. It allows an author to add one or more
-"moods" to every post. Each mood can be associated with an image file. The
-result would be that the author could have an animated happy smiley face next to
-the words I'm Happy! for every post she wishes.
+Cricket Moods is a flexible "mood tag" WordPress plugin.  It allows an author to
+add one or more "moods" to every post.  Each mood can be associated with an
+image file.  The result would be that the author could have an animated happy
+smiley face next to the words I'm Happy! for every post she wishes.
 
-The difference between this plugin and the ones I know of that are currently
-available is that Cricket Moods presents you with a list of available moods when
-you go to create or edit a post. No need to remember your list of moods. The
-list of available moods is defined in a table in WordPress's database;
-therefore, it is possible to rename the moods or even change a mood's graphic
-without modifying every post that uses that mood.
+Cricket Moods presents you with a list of available moods when you go to create
+or edit a post.  There is no need for you to remember your list of moods.  Using
+an option panel in WordPress' administrative menus, you can rename your moods or
+even change a mood's graphic without modifying every post that uses that mood.
+
+Despite this plugin's name and my continual reference to "moods", this plugin can be used for more than just moods.  For example, instead of displaying your current mood, you could give your readers the current weather where you are.  You could rename the mood tags to things like "Sunny", "Overcast", and "Raining Cats and Dogs."  You could then upload little cloud and sun images and use those with the tags instead of the pre-defined mood smilies.  You could even leave the tag text or the tag images blank to have either just text or just images.
 
 
 == Installation ==
 
 1.  Place cricket-moods.php into `/wp-content/plugins`.
-2.  Add the function `<?php cm_the_moods(); ?>` to your theme (somewhere in The
-    Loop) where you want the moods to be displayed.
-3.  Activate the Cricket Moods plugin from the Plugin Management panel of
+2.  Activate the Cricket Moods plugin from the "Plugin Management" panel of
     WordPress.
 
 = Upgrading =
@@ -30,21 +28,32 @@ This version of Cricket Moods converts the old 1.0.x DB mood table to the new
 wp_option format and deletes the old table automatically. Basically, it's
 plug-and-play.
 
+
 == Usage ==
 
-In order for this plugin to be useful, you must place cm_the_moods() somewhere
-inside The Loop. When called with no parameters, cm_the_moods() only prints the
-mood image followed by the mood name, an ampersand, and any more moods followed
-by ampersands. For example, on a post with the moods Happy and Bored it will
-print:
-  `<img src="/wp-images/smilies/icon_happy.gif" alt="Happy emoticon" /> Happy
+By default, Cricket Moods will automatically print each post's moods just below
+the time for each post.
+
+Using the "Cricket Moods" panel under "Options" in the WordPress administrative
+area, you can add, modify, and delete moods as you see fit.  Leaving the "Mood
+Name" blank will cause Cricket Moods not to display any text with that mood's
+image for a purely pictorial representation of your mood.  Conversely, you can
+leave the "Image File" blank and no smilie or other image will be shown with
+that mood.  Deleting a mood will also remove any references to that mood from
+your blog posts.
+
+= Advanced Usage =
+
+If you want your moods to be displayed somewhere other than the default location, you must place cm_the_moods() somewhere inside The Loop and disable
+AutoPrint in the Cricket Moods options.  When called with no parameters, cm_the_moods() only prints the mood image followed by the mood name, an ampersand, and any more moods followed by ampersands.  For example, on a post with the moods "Happy" and "Bored" it will print:
+  <img src="/wp-images/smilies/icon_happy.gif" alt="Happy emoticon" /> Happy
     &amp; <img src="/wp-images/smilies/icon_neutral.gif" alt="Bored emoticon" />
-    Bored`
+    Bored
 
 If there are no moods for the current post, it will print nothing.
 
 cm_the_moods() can take three parameters:
-  `<?php cm_the_moods('separator', 'before', 'after'); ?>`
+  <?php cm_the_moods('separator', 'before', 'after'); ?>
   'separator'
     (string) Text to place in between multiple moods. Default is ' &amp; '.
   'before'
@@ -53,17 +62,31 @@ cm_the_moods() can take three parameters:
     (string) Text to place after the last mood. Default is nothing.
 
 A good way to implement this would be:
-  `<?php cm_the_moods(' and ', '<p>My mood is: ', '.</p>'); ?>`
+  <?php cm_the_moods(' and ', '<p>My mood is: ', '.</p>'); ?>
+
+You can also use cm_has_moods() to determine if the current post or a specific
+post has moods associated with it.  It will return true or false accordingly.
+
+cm_has_moods() can take one parameter:
+  <?php cm_has_moods(post_id); ?>
+  post_id
+    (integer) The ID of the post you are inquiring about.  Default is the ID of
+    the current post.
+
+cm_has_moods() must be used inside The Loop if post_id is not provided.
 
 
 == Frequently Asked Questions ==
 
-= Can I change the list of moods available? =
+= Can each user have their own list of moods? =
 
-As of version 1.1.0, not easily.  If you want to change the list of moods,
-you'll have to access the database directly using your favorite tool.  Look for
-cricketmoods_moods in the wp_options table.  It's a serialized array, so unless
-you know what you're doing, don't bother.
+No.  This is not a feature I'm planning.  I can't really see the usefulness of
+it.  However, I will gladly accept any contributed code to implement this
+feature.
+
+= Is there a limit to the number of moods I can have? =
+
+Not that I know of.  I certainly didn't program one in.
 
 
 == Screenshots ==
