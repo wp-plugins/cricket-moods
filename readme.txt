@@ -13,7 +13,13 @@ or edit a post.  There is no need for you to remember your list of moods.  Using
 an option panel in WordPress' administrative menus, you can rename your moods or
 even change a mood's graphic without modifying every post that uses that mood.
 
-Despite this plugin's name and my continual reference to "moods", this plugin can be used for more than just moods.  For example, instead of displaying your current mood, you could give your readers the current weather where you are.  You could rename the mood tags to things like "Sunny", "Overcast", and "Raining Cats and Dogs."  You could then upload little cloud and sun images and use those with the tags instead of the pre-defined mood smilies.  You could even leave the tag text or the tag images blank to have either just text or just images.
+Despite this plugin's name and my continual reference to "moods", this plugin
+can be used for more than just moods.  For example, instead of displaying your
+current mood, you could give your readers the current weather where you are.
+You could rename the mood tags to things like "Sunny", "Overcast", and "Raining
+Cats and Dogs."  You could then upload little cloud and sun images and use those
+with the tags instead of the pre-defined mood smilies.  You could even leave the
+tag text or the tag images blank to have either just text or just images.
 
 
 == Installation ==
@@ -44,8 +50,12 @@ your blog posts.
 
 = Advanced Usage =
 
-If you want your moods to be displayed somewhere other than the default location, you must place cm_the_moods() somewhere inside The Loop and disable
-AutoPrint in the Cricket Moods options.  When called with no parameters, cm_the_moods() only prints the mood image followed by the mood name, an ampersand, and any more moods followed by ampersands.  For example, on a post with the moods "Happy" and "Bored" it will print:
+If you want your moods to be displayed somewhere other than the default
+location, you must place cm_the_moods() somewhere inside The Loop and disable
+AutoPrint in the Cricket Moods options.  When called with no parameters,
+cm_the_moods() only prints the mood image followed by the mood name, an
+ampersand, and any more moods followed by ampersands.  For example, on a post
+with the moods "Happy" and "Bored" it will print:
   <img src="/wp-images/smilies/icon_happy.gif" alt="Happy emoticon" /> Happy
     &amp; <img src="/wp-images/smilies/icon_neutral.gif" alt="Bored emoticon" />
     Bored
