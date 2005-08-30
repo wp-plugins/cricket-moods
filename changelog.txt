@@ -1,6 +1,6 @@
 === Cricket Moods Changelog ===
 
-?: Version 2.0
+20050829: Version 2.0
 * Switched to a two digit versioning system to coincide with the wp-plugins.net system.
 * Added an options panel that lets authorized users change options and add, modify, and delete moods.
 * Added an option to have the moods automatically printed after the_time().
