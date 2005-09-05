@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 2.0
+Version: 2.1
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -487,7 +487,7 @@ add_action('admin_menu', 'cm_admin_add_panel');
 
 
 function cm_err($item, $text = ' class="posterr" ') {
-	global $err
+	global $err;
 	if ( !empty($err) && array_key_exists($item, $errs) ) {
 		echo $text;
 	}
@@ -683,11 +683,11 @@ function cm_install() {
 
 		if( count($mood_list) ) {
 			end($mood_list);
-			add_option(CM_OPTION_INDEX, key($mood_list)+1 );
+			update_option(CM_OPTION_INDEX, key($mood_list)+1 );
 			reset($mood_list);
 
 			uasort($mood_list, 'cm_mood_sort');
-			add_option(CM_OPTION_MOODS, $mood_list);
+			update_option(CM_OPTION_MOODS, $mood_list);
 		}
 
 		$wpdb->query("DROP TABLE $table_name");
@@ -712,15 +712,15 @@ function cm_install() {
 		);
 
 		uasort($mood_list, 'cm_mood_sort');
-		add_option(CM_OPTION_MOODS, $inital_moods);
+		update_option(CM_OPTION_MOODS, $inital_moods);
 		update_option(CM_OPTION_INDEX, count($inital_moods) );
 	}
 
 	if ( !get_option(CM_OPTION_DIR) ) {
-		add_option(CM_OPTION_DIR, '/wp-images/smilies/');
+		update_option(CM_OPTION_DIR, '/wp-images/smilies/');
 	}
 	if ( !get_option(CM_OPTION_AUTOPRINT) ) {
-		add_option(CM_OPTION_AUTOPRINT, "on");
+		update_option(CM_OPTION_AUTOPRINT, "on");
 	}
 
 }
