@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 2.0
+Version: 2.1
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
