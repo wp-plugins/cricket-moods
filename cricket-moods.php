@@ -479,9 +479,6 @@ function cm_admin_panel() {
 			if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
 				$_POST['cm_image_dir'] .= '/';
 			}
-			if ( substr( $_POST['cm_image_dir'], 0, 1 ) != '/' ) {
-				$_POST['cm_image_dir'] = '/' . $_POST['cm_image_dir'];
-			}
 			update_option(CM_OPTION_DIR, stripslashes($_POST['cm_image_dir']) );
 		}
 
@@ -549,7 +546,7 @@ function cm_admin_panel() {
 	<ul>
 	<li><label for="cm_image_dir">Mood image directory:</label><br/>
 	<input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo get_option(CM_OPTION_DIR) ?>"/><br/>
-	Directory containing the images associated with the moods.</li>
+	Directory containing the images associated with the moods.  Should be relative to the root of your domain.</li>
 	<li><input type="checkbox" id="cm_auto_print" name="cm_auto_print" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "on" ) echo 'checked="true"' ?>/> <label for="cm_auto_print">Automatically print moods</label><br/>
 	Causes Cricket Moods to automatically display moods directly after each post's time without the need to modify the active template.  Works best with the default WordPress theme.  Uncheck if you've manually added <code>cm_the_moods()</code> to your template(s).</li>
 	<ul>
