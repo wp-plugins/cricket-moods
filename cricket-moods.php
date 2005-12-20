@@ -91,7 +91,7 @@ function cm_the_moods($separator=' &amp; ', $before = null, $after = null) {
 
 			// Only print the img tag if the mood has an associated image.
 			if( !empty( $mood_list[$mood_id]['mood_image'] ) ) {
-				echo '<img src="'. CM_IMAGE_DIR . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' emoticon" /> ';
+				echo '<img src="http://'. $_SERVER['HTTP_HOST'] . CM_IMAGE_DIR . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' emoticon" /> ';
 			}
 
 			echo $mood_name;
@@ -478,6 +478,9 @@ function cm_admin_panel() {
 			// Add a trailing slash if it doesn't have one.
 			if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
 				$_POST['cm_image_dir'] .= '/';
+			}
+			if ( substr( $_POST['cm_image_dir'], 0, 1 ) != '/' ) {
+				$_POST['cm_image_dir'] = '/' . $_POST['cm_image_dir'];
 			}
 			update_option(CM_OPTION_DIR, stripslashes($_POST['cm_image_dir']) );
 		}
