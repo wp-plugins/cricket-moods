@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 2.1
+Version: 3.0
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -33,7 +33,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * It is not necessary to modify anything in this file. *
  ************************************************** !! **/
 
-define('CM_VERSION', '2.1');
+define('CM_VERSION', '3.0');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
@@ -668,76 +668,53 @@ function cm_admin_panel() {
 
 
 
+function cm_init_usermeta($user_id) {
+	$inital_moods = array(
+		array('mood_name' => 'Esctatic', 'mood_image' => 'icon_biggrin.gif'),
+		array('mood_name' => 'Confused', 'mood_image' => 'icon_confused.gif'),
+		array('mood_name' => 'Cool', 'mood_image' => 'icon_cool.gif'),
+		array('mood_name' => 'Sad', 'mood_image' => 'icon_cry.gif'),
+		array('mood_name' => 'Alarmed', 'mood_image' => 'icon_eek.gif'),
+		array('mood_name' => 'Angry', 'mood_image' => 'icon_evil.gif'),
+		array('mood_name' => 'Bored', 'mood_image' => 'icon_neutral.gif'),
+		array('mood_name' => 'Playful', 'mood_image' => 'icon_razz.gif'),
+		array('mood_name' => 'Sickly', 'mood_image' => 'icon_sad.gif'),
+		array('mood_name' => 'Happy', 'mood_image' => 'icon_smile.gif'),
+		array('mood_name' => 'Surprised', 'mood_image' => 'icon_surprised.gif'),
+		array('mood_name' => 'Mischievous', 'mood_image' => 'icon_twisted.gif'),
+		array('mood_name' => 'Flirtatious', 'mood_image' => 'icon_wink.gif')
+	);
+
+	uasort($initial_moods, 'cm_mood_sort');
+
+	return update_usermeta($user_id, CM_OPTION_MOODS, $inital_moods);
+}
+
+
 /**
 cm_install
 
-Initialize the mood list for first time installs,
-or upgrade an old database table.
+Initialize the mood list for all qualified users.
 */
 function cm_install() {
-	global $wpdb, $user_level;
+	global $wpdb;
 
-	// Make sure we're authorized to do this.
-	get_currentuserinfo();
-	if ($user_level < 8) {
-		return;
-	}
-
-	// The old 1.0.x mood table was named:
-	$table_name = 'cm_moods';
-
-	// Upgrade the old table to the option system if it exists.
-	if ( in_array( $table_name, $wpdb->get_col('SHOW TABLES') ) ) {
-		$mood_list = array();
-
-		foreach( $wpdb->get_results("SELECT * FROM $table_name ORDER BY mood_id", ARRAY_A) as $line ) {
-			$mood_list[ $line['mood_id'] ] = array('mood_name' => $line['mood_name'], 'mood_image' => $line['mood_image']);
+	foreach( $wpdb->get_col("SELECT ID FROM wp_users") as $user_id ) {
+		// Initialize the moods list if it doesn't already exist,
+		if ( user_can_create_draft($user_id) && !get_usermeta($user_id, CM_OPTION_MOODS) ) {
+			cm_init_usermeta($user_id);
 		}
-
-		if( count($mood_list) ) {
-			end($mood_list);
-			update_option(CM_OPTION_INDEX, key($mood_list)+1 );
-			reset($mood_list);
-
-			uasort($mood_list, 'cm_mood_sort');
-			update_option(CM_OPTION_MOODS, $mood_list);
-		}
-
-		$wpdb->query("DROP TABLE $table_name");
-	}
-
-	// Initialize the moods list if it doesn't already exist,
-	if ( !get_option(CM_OPTION_MOODS) ) {
-		$inital_moods = array(
-			array('mood_name' => 'Esctatic', 'mood_image' => 'icon_biggrin.gif'),
-			array('mood_name' => 'Confused', 'mood_image' => 'icon_confused.gif'),
-			array('mood_name' => 'Cool', 'mood_image' => 'icon_cool.gif'),
-			array('mood_name' => 'Sad', 'mood_image' => 'icon_cry.gif'),
-			array('mood_name' => 'Alarmed', 'mood_image' => 'icon_eek.gif'),
-			array('mood_name' => 'Angry', 'mood_image' => 'icon_evil.gif'),
-			array('mood_name' => 'Bored', 'mood_image' => 'icon_neutral.gif'),
-			array('mood_name' => 'Playful', 'mood_image' => 'icon_razz.gif'),
-			array('mood_name' => 'Sickly', 'mood_image' => 'icon_sad.gif'),
-			array('mood_name' => 'Happy', 'mood_image' => 'icon_smile.gif'),
-			array('mood_name' => 'Surprised', 'mood_image' => 'icon_surprised.gif'),
-			array('mood_name' => 'Mischievous', 'mood_image' => 'icon_twisted.gif'),
-			array('mood_name' => 'Flirtatious', 'mood_image' => 'icon_wink.gif')
-		);
-
-		uasort($mood_list, 'cm_mood_sort');
-		update_option(CM_OPTION_MOODS, $inital_moods);
-		update_option(CM_OPTION_INDEX, count($inital_moods) );
 	}
 
 	if ( !get_option(CM_OPTION_DIR) ) {
-		update_option(CM_OPTION_DIR, '/wp-images/smilies/');
+		update_option(CM_OPTION_DIR, '/wp-includes/images/smilies/');
 	}
 	if ( !get_option(CM_OPTION_AUTOPRINT) ) {
 		update_option(CM_OPTION_AUTOPRINT, 'on');
 	}
-	if ( !get_option(CM_OPTION_USERLEVEL) ) {
-		update_option (CM_OPTION_USERLEVEL, '6');
-	}
+
+	delete_option(CM_OPTION_USERLEVEL);
+
 	if ( get_option(CM_OPTION_VERSION) != CM_VERSION ) {
 		update_option(CM_OPTION_VERSION, CM_VERSION);
 	}
@@ -746,9 +723,8 @@ function cm_install() {
 
 
 // If the plugin was just activated, perform the install.
-if ( isset($_GET['activate']) && $_GET['activate'] == 'true' ) {
-	add_action('init', 'cm_install');
-}
+register_activation_hook(__FILE__, 'cm_install');
+
 
 include('cricket-moods-manage.inc');
 
