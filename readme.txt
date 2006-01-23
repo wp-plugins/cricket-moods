@@ -1,5 +1,5 @@
 === Cricket Moods ===
-Version: 2.1
+Version: 3.0
 Tags: mood, meta
 Website: http://dev.wp-plugins.org/wiki/CricketMoods
 
@@ -13,7 +13,7 @@ or edit a post.  There is no need for you to remember your list of moods.  Using
 an option panel in WordPress' administrative menus, you can rename your moods or
 even change a mood's graphic without modifying every post that uses that mood.
 
-Despite this plugin's name and my continual reference to "moods", this plugin
+Despite this plugin's name and my continual references to "moods", this plugin
 can be used for more than just moods.  For example, instead of displaying your
 current mood, you could give your readers the current weather where you are.
 You could rename the mood tags to things like "Sunny", "Overcast", and "Raining
@@ -30,9 +30,8 @@ tag text or the tag images blank to have either just text or just images.
 
 = Upgrading =
 
-This version of Cricket Moods converts the old 1.0.x DB mood table to the new
-wp_option format and deletes the old table automatically. Basically, it's
-plug-and-play.
+This version of Cricket Moods does not support upgrading from Cricket Moods 1.x.
+Upgrades from Cricket Moods 2.x are automatic.
 
 
 == Usage ==
@@ -90,9 +89,7 @@ cm_has_moods() must be used inside The Loop if post_id is not provided.
 
 = Can each user have their own list of moods? =
 
-No.  This is not a feature I'm planning.  I can't really see the usefulness of
-it.  However, I will gladly accept any contributed code to implement this
-feature.
+Yes!  This is a new feature of version 3.0.
 
 = Is there a limit to the number of moods I can have? =
 

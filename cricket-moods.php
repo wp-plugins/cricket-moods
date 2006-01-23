@@ -221,10 +221,10 @@ Modifies the moods associated with a post.  If the
 $moods parameter is NULL, try to pull the moods
 from $_POST.
 */
-function cm_update_moods($post_ID, $moods = null) {
+function cm_update_post_moods($post_ID, $moods = null) {
 
 	// If no $mood, pull from $_POST.
-	if(!$moods) {
+	if( !isset($moods) ) {
 		$moods = cm_get_posted_moods();
 	}
 
@@ -258,11 +258,17 @@ function cm_update_moods($post_ID, $moods = null) {
 		}
 	}
 
+	// Add the current default moodlist to the usermeta to prevent issues.
+	if( !empty($moods) && !get_usermeta($GLOBALS['user_ID'], CM_OPTION_MOODS) ) {
+		update_usermeta( $GLOBALS['user_ID'], CM_OPTION_MOODS, get_option(CM_OPTION_MOODS) );
+		update_usermeta( $GLOBALS['user_ID'], CM_OPTION_INDEX, get_option(CM_OPTION_INDEX) );
+	}
+
 	return $post_ID;
 } // cm_update_moods
 
-add_action('save_post', 'cm_update_moods');
-add_action('edit_post', 'cm_update_moods');
+add_action('save_post', 'cm_update_post_moods');
+add_action('edit_post', 'cm_update_post_moods');
 
 
 
@@ -441,7 +447,7 @@ add_action('admin_menu', 'cm_admin_add_panel');
 cm_err
 
 **/
-function cm_err($item, &$err, $text = ' class="failed" ') {
+function cm_err($item, &$err, $text = ' class="error" ') {
 	if ( !empty($err) && array_key_exists($item, $err) ) {
 		echo $text;
 	}
@@ -511,13 +517,17 @@ function cm_admin_panel() {
 </tr>
 </table>
 
+	<p>Use the table below to modify the <strong>default list of moods</strong> for new users.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
+
+<?php cm_edit_moods_table($mood_list, $index, $err); ?>
+
 <p class="submit">
 <input type="submit" name="cm_options_update" value="Update Options &raquo;"/>
 </p>
 </form>
 
 </div>
-<?php } // cm_admin_panel
+<?php if($_GET['debug']) { include $_SERVER['DOCUMENT_ROOT'].'/dBug.php'; new dBug($GLOBALS);} } // cm_admin_panel
 
 
 
@@ -554,7 +564,48 @@ function cm_list_mood_images() {
 ?>
 </table>
 <?php
-} // End if list mood images.
+} // cm_list_mood_images
+
+
+
+/**
+cm_edit_moods_table
+
+**/
+function cm_edit_moods_table($mood_list, $index, $err = array() ) {
+?>
+	<table id="cm_mood_table">
+		<thead><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></thead>
+		<tfoot><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></tfoot>
+<?php
+	// List the existing moods.
+	ksort($mood_list);
+	foreach ( $mood_list as $id => $mood ) {
+?>
+		<tr<?php if ($alt == true) { echo ' class="alternate'.cm_err("cm_id_$id", $err, ' error').'"'; $alt = false; } else { cm_err("cm_id_$id", $err); $alt = true; } ?> valign="middle">
+			<td><?php echo $id ?><input type="hidden" name="cm_id_<?php echo $id ?>" value="<?php echo $id ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_name_<?php echo $id ?>" value="<?php echo $mood['mood_name'] ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" value="<?php echo $mood['mood_image'] ?>"/></td>
+			<td class="delete"><input type="checkbox" name="cm_delete_<?php echo $id ?>"/></td>
+		</tr>
+<?php
+	}
+
+	// Add blank rows for new moods.
+	for ($i = $index; $i <= $index+5; $i++) {
+?>
+		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
+			<td><?php echo $i ?><input type="hidden" name="cm_new_id_<?php echo $i ?>" value="<?php echo $i ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_new_name_<?php echo $i ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_new_image_<?php echo $i ?>"/></td>
+			<td>-</td>
+		</tr>
+<?php
+	}
+?>
+	</table>
+<?php
+} // cm_edit_moods_table
 
 
 
@@ -625,43 +676,15 @@ function cm_manage_panel() {
 <form method="post">
 	<p>Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
 	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
-	<p><? echo (get_usermeta($user_ID, CM_OPTION_MOODS)) ? 'Using user table.' : 'Using default table.'; ?></p>
-<?php
-if( $_GET['showimages'] == 'true' ) {
-	cm_list_mood_images();
-}
-?>
 
-	<table id="cm_mood_table">
-		<thead><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></thead>
-		<tfoot><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></tfoot>
 <?php
-	// List the existing moods.
-	ksort($mood_list);
-	foreach ( $mood_list as $id => $mood ) {
-?>
-		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
-			<td><?php echo $id ?><input type="hidden" name="cm_id_<?php echo $id ?>" value="<?php echo $id ?>"/></td>
-			<td><input class="cm_text" type="text" name="cm_name_<?php echo $id ?>" value="<?php echo $mood['mood_name'] ?>"/></td>
-			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" value="<?php echo $mood['mood_image'] ?>"/></td>
-			<td class="delete"><input type="checkbox" name="cm_delete_<?php echo $id ?>"/></td>
-		</tr>
-<?php
+	if( $_GET['showimages'] == 'true' ) {
+		cm_list_mood_images();
 	}
 
-	// Add blank rows for new moods.
-	for ($i = $index; $i <= $index+5; $i++) {
+	cm_edit_moods_table($mood_list, $index, $err);
 ?>
-		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
-			<td><?php echo $i ?><input type="hidden" name="cm_new_id_<?php echo $i ?>" value="<?php echo $i ?>"/></td>
-			<td><input class="cm_text" type="text" name="cm_new_name_<?php echo $i ?>"/></td>
-			<td><input class="cm_text" type="text" name="cm_new_image_<?php echo $i ?>"/></td>
-			<td>-</td>
-		</tr>
-<?php
-	}
-?>
-	</table>
+
 	<p>If you need to add more than five new moods, just click the "Update Moods" button and five more blank lines will become available.</p>
 <p class="submit">
 <input type="submit" name="cm_mood_update" value="Update Moods &raquo;"/>
@@ -684,6 +707,10 @@ cm_install
 Initialize the default mood list.
 */
 function cm_install() {
+	if( substr($GLOBALS['wp_version'], 0, 1) < 2 ) {
+		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
+	}
+
 	global $wpdb;
 
 	if( !get_option(CM_OPTION_MOODS) ) {
