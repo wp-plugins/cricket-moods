@@ -31,7 +31,7 @@ tag text or the tag images blank to have either just text or just images.
 = Upgrading =
 
 This version of Cricket Moods does not support upgrading from Cricket Moods 1.x.
-Upgrades from Cricket Moods 2.x are automatic.
+Upgrades from Cricket Moods 2.x are automagic.
 
 
 == Usage ==
@@ -94,6 +94,13 @@ Yes!  This is a new feature of version 3.0.
 = Is there a limit to the number of moods I can have? =
 
 Not that I know of.  I certainly didn't program one in.
+
+
+== Known Issues ==
+
+* Things get a little fuzzy when you change the author of an existing post with mood tags.  If the two authors do not have the exact same mood list, the associated moods may seem to unexpectedly change or not show at all.  It is recommended that you disassociate all the moods from a post before changing the post's author.
+
+* Editing the post of another user will cause *that* user's moods to be displayed, not yours.  This is a feature.
 
 
 == Screenshots ==
