@@ -357,12 +357,12 @@ cm_auto_moods
 
 Used if the AutoPrint option is enabled.
 */
-function cm_auto_moods($time) {
-	return $time . cm_the_moods(' &amp; ', '<br/>Current Mood: ', '', true);
+function cm_auto_moods($content) {
+	return cm_the_moods(' &amp; ', '<p class="moods">Current Mood: ', '</p>', true) . $content;
 }
 
-if( !is_admin() ) {
-	add_filter('the_time', 'cm_auto_moods');
+if( !is_admin() && get_option(CM_OPTION_AUTOPRINT) == "on" ) {
+	add_filter('the_content', 'cm_auto_moods');
 }
 
 
@@ -532,12 +532,12 @@ function cm_admin_panel() {
 <tr valign="top"<?php cm_err('cm_image_dir', $err) ?>>
 <th width="33%" scope="row"><label for="cm_image_dir">Mood image directory:</label></th>
 	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo get_option(CM_OPTION_DIR) ?>" /><br/>
-	Directory containing the images associated with the moods.</td>
+	Directory containing the images associated with the moods.  Should be relative to the root of your domain.</td>
 </tr>
 <tr valign="top"<?php cm_err('cm_auto_print', $err) ?>>
 <th width="33%" scope="row"><label for="cm_auto_print">Automatically print moods:</label></th>
 	<td><input type="checkbox" id="cm_auto_print" name="cm_auto_print" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "on" ) echo 'checked="true"' ?>/><br/>
-	Causes Cricket Moods to automatically display moods directly after each post's time without the need to modify the active template.  <strong>It is not recommended that you use this.</strong>  Uncheck if you've manually added <code>cm_the_moods()</code> to your template(s).</td>
+	Causes Cricket Moods to automatically display moods just before each post's content without the need to modify the active template.  Deselect if you've manually added <code>cm_the_moods()</code> to your template(s).</td>
 </tr>
 </table>
 
