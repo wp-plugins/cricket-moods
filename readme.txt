@@ -100,7 +100,7 @@ Not that I know of.  I certainly didn't program one in.
 
 * Things get a little fuzzy when you change the author of an existing post with mood tags.  If the two authors do not have the exact same mood list, the associated moods may seem to unexpectedly change or not show at all.  It is recommended that you disassociate all the moods from a post before changing the post's author.
 
-* Editing the post of another user will cause *that* user's moods to be displayed, not yours.  This is a feature.
+* Editing the post of another user will cause *that* user's moods to be displayed, not yours.  This is an unavoidable feature.
 
 
 == Screenshots ==
@@ -117,7 +117,7 @@ See changelog.txt
 
 == Copying ==
 
-Copyright (c) 2005 Keith Constable
+Copyright (c) 2006 Keith Constable
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
