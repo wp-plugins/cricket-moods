@@ -128,16 +128,14 @@ is NULL.
 */
 function cm_has_moods($post_ID = null) {
 	if($post_ID === null) {
-		$post_moods = get_post_custom_values(CM_META_KEY);
-		$post_moods = $post_moods[0];
+		global $post_ID;
 	}
-	else
-		$post_moods = cm_get_post_moods($post_ID);
 
-	if( empty($post_moods) )
-		return false;
-	else
+	if( cm_get_post_moods($post_ID) ) {
 		return true;
+	} else {
+		return false;
+	}
 }
 
 
@@ -546,7 +544,12 @@ function cm_admin_panel() {
 <h3>Default Moods</h3>
 	<p>Use the table below to modify the <strong>default list of moods</strong> for new users.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
 
-<?php cm_edit_moods_table( cm_process_moods(-1) , $index, $err); ?>
+<?php
+	if( $_GET['showimages'] == 'true' ) {
+		cm_list_mood_images();
+	}
+
+cm_edit_moods_table( cm_process_moods(-1) , $index, $err); ?>
 
 <p class="submit">
 <input type="submit" name="cm_options_update" value="Update Options &raquo;"/>
