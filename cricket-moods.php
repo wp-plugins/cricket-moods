@@ -154,19 +154,14 @@ function cm_process_moods($user_ID = '') {
 	if( $user_ID === '' ) {
 		global $user_ID;
 	}
-	if( $user_ID != -1 && get_usermeta($user_ID, CM_OPTION_MOODS) ) {
+	if( $user_ID != -1 ) {
 		$moods = get_usermeta($user_ID, CM_OPTION_MOODS);
+	}
+	if( $moods ) {
+		return $moods;
 	} else {
-		$moods = get_option(CM_OPTION_MOODS);
+		return get_option(CM_OPTION_MOODS);
 	}
-
-	if( !is_array($moods) ) {
-		//$moods = unserialize( str_replace( "'", "\'", strrev( $moods ) ) );
-		$moods = unserialize( strrev( $moods ) );
-	//	array_walk( $moods, 'cm_removeslashes' );
-	}
-	//array_walk( $moods, 'cm_removeslashes' );
-	return $moods;
 }
 
 // Callback function for array_walk.  Recursive!
@@ -316,9 +311,6 @@ function cm_list_select_moods() {
 	if( !empty($post->ID) ) {
 		$post_moods = cm_get_post_moods($post->ID);
 	}
-
-// 	include($_SERVER['DOCUMENT_ROOT'].'/dBug.php');
-// 	new dBug($GLOBALS);
 
 	echo '<fieldset id="cm_moodlist" class="dbx-box"><h3 class="dbx-handle">Moods</h3><div class="dbx-content">';
 
@@ -524,7 +516,7 @@ function cm_admin_panel() {
 
 		// Finally, update the mood list.
 		uasort($mood_list, 'cm_mood_sort');
-		update_option(CM_OPTION_MOODS, strrev( serialize($mood_list) ) );
+		update_option(CM_OPTION_MOODS, stripslashes_deep($mood_list) );
 
 		if ( empty($err) ) {
 			echo '<div id="message" class="updated fade"><p>Options updated!</p></div>';
@@ -614,7 +606,6 @@ cm_edit_moods_table
 
 **/
 function cm_edit_moods_table($mood_list, $index, $err = array() ) {
-print_r($mood_list);
 ?>
 	<table id="cm_mood_table">
 		<thead><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></thead>
@@ -698,10 +689,7 @@ function cm_manage_panel() {
 
 		// Finally, update the mood list.
 		uasort($mood_list, 'cm_mood_sort');
-		//update_usermeta($user_ID, CM_OPTION_MOODS, $wpdb->escape( strrev( serialize($mood_list) ) ) );
-		array_walk( $mood_list, 'cm_removeslashes' );
-		update_usermeta($user_ID, CM_OPTION_MOODS, $mood_list);
-		$query = $wpdb->last_query;
+		update_usermeta($user_ID, CM_OPTION_MOODS, stripslashes_deep($mood_list) );
 
 		if ( empty($err) ) {
 			echo '<div id="message" class="updated fade"><p>Moods updated!</p></div>';
@@ -717,13 +705,6 @@ function cm_manage_panel() {
 
 <div class="wrap">
 <h2>Cricket Moods</h2>
-
-<? //include($_SERVER['DOCUMENT_ROOT'].'/dBug.php'); ?>
-<pre><? print_r($mood_list) ?></pre>
-
-<? var_dump(cm_process_moods()) ?>
-
-<p><? echo $query ?></p>
 
 <form method="post">
 	<p>Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
@@ -743,7 +724,6 @@ function cm_manage_panel() {
 </p>
 </form>
 
-<pre><?php print_r($_POST); print_r($mood_list); ?></pre>
 </div>
 
 <?
