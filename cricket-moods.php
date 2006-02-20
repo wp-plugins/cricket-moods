@@ -164,13 +164,6 @@ function cm_process_moods($user_ID = '') {
 	}
 }
 
-// Callback function for array_walk.  Recursive!
-function cm_removeslashes(&$val, $key) {
-	if ( is_array($val) ) array_walk($val,'cm_removeslashes');
-	else {
-		$val = stripslashes($val);
-	}
-}
 
 
 
@@ -188,6 +181,7 @@ function cm_get_index($user_ID = '') {
 		return get_option(CM_OPTION_INDEX);
 	}
 }
+
 
 
 
