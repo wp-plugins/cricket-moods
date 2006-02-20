@@ -159,7 +159,22 @@ function cm_process_moods($user_ID = '') {
 	} else {
 		$moods = get_option(CM_OPTION_MOODS);
 	}
-	return ( is_array($moods) ? $moods : unserialize( str_replace( "'", "\'", strrev( $moods ) ) ) );
+
+	if( !is_array($moods) ) {
+		//$moods = unserialize( str_replace( "'", "\'", strrev( $moods ) ) );
+		$moods = unserialize( strrev( $moods ) );
+	//	array_walk( $moods, 'cm_removeslashes' );
+	}
+	//array_walk( $moods, 'cm_removeslashes' );
+	return $moods;
+}
+
+// Callback function for array_walk.  Recursive!
+function cm_removeslashes(&$val, $key) {
+	if ( is_array($val) ) array_walk($val,'cm_removeslashes');
+	else {
+		$val = stripslashes($val);
+	}
 }
 
 
@@ -611,8 +626,8 @@ print_r($mood_list);
 ?>
 		<tr<?php if ($alt == true) { echo ' class="alternate'.cm_err("cm_id_$id", $err, ' error').'"'; $alt = false; } else { cm_err("cm_id_$id", $err); $alt = true; } ?> valign="middle">
 			<td><?php echo $id ?><input type="hidden" name="cm_id_<?php echo $id ?>" value="<?php echo $id ?>"/></td>
-			<td><input class="cm_text" type="text" name="cm_name_<?php echo $id ?>" value="<?php echo $mood['mood_name'] ?>"/></td>
-			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" value="<?php echo $mood['mood_image'] ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_name_<?php echo $id ?>" value="<?php echo wp_specialchars($mood['mood_name'], true) ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" value="<?php echo wp_specialchars($mood['mood_image'], true) ?>"/></td>
 			<td class="delete"><input type="checkbox" name="cm_delete_<?php echo $id ?>"/></td>
 		</tr>
 <?php
@@ -683,7 +698,10 @@ function cm_manage_panel() {
 
 		// Finally, update the mood list.
 		uasort($mood_list, 'cm_mood_sort');
-		update_usermeta($user_ID, CM_OPTION_MOODS, $wpdb->escape( strrev( serialize($mood_list) ) ) );
+		//update_usermeta($user_ID, CM_OPTION_MOODS, $wpdb->escape( strrev( serialize($mood_list) ) ) );
+		array_walk( $mood_list, 'cm_removeslashes' );
+		update_usermeta($user_ID, CM_OPTION_MOODS, $mood_list);
+		$query = $wpdb->last_query;
 
 		if ( empty($err) ) {
 			echo '<div id="message" class="updated fade"><p>Moods updated!</p></div>';
@@ -705,8 +723,10 @@ function cm_manage_panel() {
 
 <? var_dump(cm_process_moods()) ?>
 
+<p><? echo $query ?></p>
+
 <form method="post">
-	<p>What? Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
+	<p>Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
 	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
 
 <?php
