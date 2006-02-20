@@ -155,10 +155,11 @@ function cm_process_moods($user_ID = '') {
 		global $user_ID;
 	}
 	if( $user_ID != -1 && get_usermeta($user_ID, CM_OPTION_MOODS) ) {
-		return get_usermeta($user_ID, CM_OPTION_MOODS);
+		$moods = get_usermeta($user_ID, CM_OPTION_MOODS);
 	} else {
-		return get_option(CM_OPTION_MOODS);
+		$moods = get_option(CM_OPTION_MOODS);
 	}
+	return ( is_array($moods) ? $moods : unserialize( str_replace( "'", "\'", strrev( $moods ) ) ) );
 }
 
 
@@ -468,7 +469,7 @@ function cm_admin_panel() {
 			if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
 				$_POST['cm_image_dir'] .= '/';
 			}
-			update_option( CM_OPTION_DIR, stripslashes($_POST['cm_image_dir']) );
+			update_option( CM_OPTION_DIR, $_POST['cm_image_dir'] );
 		} else {
 			$err['cm_image_dir'] = 'You <em>must</em> supply an image directory!';
 		}
@@ -489,8 +490,8 @@ function cm_admin_panel() {
 					unset($mood_list[$value]);
 				// Otherwise, update the mood name and image if both the name and the image are not blank.
 				} elseif ( !empty($_POST["cm_name_$value"]) || !empty($_POST["cm_image_$value"]) ) {
-					$mood_list[$value]['mood_name'] = stripslashes($_POST["cm_name_$value"]);
-					$mood_list[$value]['mood_image'] = stripslashes($_POST["cm_image_$value"]);
+					$mood_list[$value]['mood_name'] = $_POST["cm_name_$value"];
+					$mood_list[$value]['mood_image'] = $_POST["cm_image_$value"];
 				} else {
 					$err['cm_id_'.$value] = 'You must supply <em>either</em> a mood name <em>or</em> an image name for the mood with ID #'.$value.'!';
 				}
@@ -499,7 +500,7 @@ function cm_admin_panel() {
 			// New moods start with 'cm_new_id_' and should have either a name or an image.
 			elseif ( substr($name, 0, 10) == 'cm_new_id_' && ( !empty($_POST["cm_new_name_$value"]) || !empty($_POST["cm_new_image_$value"]) ) ) {
 				// Add the new mood to the mood list.
-				$mood_list[$index++] = array( 'mood_name' => stripslashes($_POST["cm_new_name_$value"]), 'mood_image' => stripslashes($_POST["cm_new_image_$value"]) );
+				$mood_list[$index++] = array( 'mood_name' => $_POST["cm_new_name_$value"], 'mood_image' => $_POST["cm_new_image_$value"] );
 			}
 		}
 
@@ -508,7 +509,7 @@ function cm_admin_panel() {
 
 		// Finally, update the mood list.
 		uasort($mood_list, 'cm_mood_sort');
-		update_option(CM_OPTION_MOODS, $mood_list);
+		update_option(CM_OPTION_MOODS, strrev( serialize($mood_list) ) );
 
 		if ( empty($err) ) {
 			echo '<div id="message" class="updated fade"><p>Options updated!</p></div>';
@@ -544,7 +545,7 @@ function cm_admin_panel() {
 <h3>Default Moods</h3>
 	<p>Use the table below to modify the <strong>default list of moods</strong> for new users.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
 
-<?php cm_edit_moods_table($mood_list, $index, $err); ?>
+<?php cm_edit_moods_table( cm_process_moods(-1) , $index, $err); ?>
 
 <p class="submit">
 <input type="submit" name="cm_options_update" value="Update Options &raquo;"/>
@@ -552,7 +553,7 @@ function cm_admin_panel() {
 </form>
 
 </div>
-<?php if($_GET['debug']) { include $_SERVER['DOCUMENT_ROOT'].'/dBug.php'; new dBug($GLOBALS);} } // cm_admin_panel
+<?php } // cm_admin_panel
 
 
 
@@ -598,6 +599,7 @@ cm_edit_moods_table
 
 **/
 function cm_edit_moods_table($mood_list, $index, $err = array() ) {
+print_r($mood_list);
 ?>
 	<table id="cm_mood_table">
 		<thead><tr><th>ID</th><th>Mood Name</th><th>Image File</th><th>Delete</th></tr></thead>
@@ -662,8 +664,8 @@ function cm_manage_panel() {
 
 				// Otherwise, update the mood name and image if both the name and the image are not blank.
 				} elseif ( !empty($_POST["cm_name_$value"]) || !empty($_POST["cm_image_$value"]) ) {
-					$mood_list[$value]['mood_name'] = stripslashes($_POST["cm_name_$value"]);
-					$mood_list[$value]['mood_image'] = stripslashes($_POST["cm_image_$value"]);
+					$mood_list[$value]['mood_name'] = $_POST["cm_name_$value"];
+					$mood_list[$value]['mood_image'] = $_POST["cm_image_$value"];
 				} else {
 					$err['cm_id_'.$value] = 'You must supply <em>either</em> a mood name <em>or</em> an image name for the mood with ID #'.$value.'!';
 				}
@@ -672,16 +674,16 @@ function cm_manage_panel() {
 			// New moods start with 'cm_new_id_' and should have either a name or an image.
 			elseif ( substr($name, 0, 10) == 'cm_new_id_' && ( !empty($_POST["cm_new_name_$value"]) || !empty($_POST["cm_new_image_$value"]) ) ) {
 				// Add the new mood to the mood list.
-				$mood_list[$index++] = array( 'mood_name' => stripslashes($_POST["cm_new_name_$value"]), 'mood_image' => stripslashes($_POST["cm_new_image_$value"]) );
+				$mood_list[$index++] = array( 'mood_name' => $_POST["cm_new_name_$value"], 'mood_image' => $_POST["cm_new_image_$value"] );
 			}
 		}
 
 		// Update the option containing the index.
-		update_usermeta($user_ID, CM_OPTION_INDEX, $index);
+		update_usermeta($user_ID, CM_OPTION_INDEX, $wpdb->escape($index) );
 
 		// Finally, update the mood list.
 		uasort($mood_list, 'cm_mood_sort');
-		update_usermeta($user_ID, CM_OPTION_MOODS, $mood_list);
+		update_usermeta($user_ID, CM_OPTION_MOODS, $wpdb->escape( strrev( serialize($mood_list) ) ) );
 
 		if ( empty($err) ) {
 			echo '<div id="message" class="updated fade"><p>Moods updated!</p></div>';
@@ -698,8 +700,13 @@ function cm_manage_panel() {
 <div class="wrap">
 <h2>Cricket Moods</h2>
 
+<? //include($_SERVER['DOCUMENT_ROOT'].'/dBug.php'); ?>
+<pre><? print_r($mood_list) ?></pre>
+
+<? var_dump(cm_process_moods()) ?>
+
 <form method="post">
-	<p>Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
+	<p>What? Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.<?php if($_GET['showimages'] != 'true') { ?>  You can also view a table of <a href="<?php echo $_SERVER['REQUEST_URI']. '&showimages=true' ?>">available mood images</a> in the mood image directory.<?php } ?></p>
 	<p><strong>Deleting a mood will also remove any references to that mood from your posts.</strong></p>
 
 <?php
@@ -707,14 +714,17 @@ function cm_manage_panel() {
 		cm_list_mood_images();
 	}
 
-	cm_edit_moods_table($mood_list, $index, $err);
+	cm_edit_moods_table(cm_process_moods(), $index, $err);
 ?>
 
 	<p>If you need to add more than five new moods, just click the "Update Moods" button and five more blank lines will become available.</p>
 <p class="submit">
 <input type="submit" name="cm_mood_update" value="Update Moods &raquo;"/>
 </p>
-</form></div>
+</form>
+
+<pre><?php print_r($_POST); print_r($mood_list); ?></pre>
+</div>
 
 <?
 } // cm_manage_panel
