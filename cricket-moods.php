@@ -742,48 +742,51 @@ cm_install
 Initialize the default mood list.
 */
 function cm_install() {
-	if( substr($GLOBALS['wp_version'], 0, 1) < 2 ) {
+
+	// This plugin will not work with WP < 2.0.1
+	$wp_var = explode('.', $GLOBALS['wp_version']);
+	if( $wp_var[0] < 2 || ( empty($wp_var[2]) && $wp_var[1] == 0 ) ) {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
 	}
 
-	global $wpdb;
-
-	if( !get_option(CM_OPTION_MOODS) ) {
-
-		$inital_moods = array(
-			array('mood_name' => 'Alarmed', 'mood_image' => 'icon_eek.gif'),
-			array('mood_name' => 'Angry', 'mood_image' => 'icon_evil.gif'),
-			array('mood_name' => 'Bored', 'mood_image' => 'icon_neutral.gif'),
-			array('mood_name' => 'Confused', 'mood_image' => 'icon_confused.gif'),
-			array('mood_name' => 'Cool', 'mood_image' => 'icon_cool.gif'),
-			array('mood_name' => 'Esctatic', 'mood_image' => 'icon_biggrin.gif'),
-			array('mood_name' => 'Flirtatious', 'mood_image' => 'icon_wink.gif'),
-			array('mood_name' => 'Happy', 'mood_image' => 'icon_smile.gif'),
-			array('mood_name' => 'Mischievous', 'mood_image' => 'icon_twisted.gif'),
-			array('mood_name' => 'Playful', 'mood_image' => 'icon_razz.gif'),
-			array('mood_name' => 'Sad', 'mood_image' => 'icon_cry.gif'),
-			array('mood_name' => 'Sickly', 'mood_image' => 'icon_sad.gif'),
-			array('mood_name' => 'Surprised', 'mood_image' => 'icon_surprised.gif')
-		);
-
-		update_option(CM_OPTION_MOODS, $inital_moods);
-		update_option(CM_OPTION_INDEX, count($inital_moods) );
-	}
-	if ( !get_option(CM_OPTION_DIR) ) {
-		update_option(CM_OPTION_DIR, '/wp-includes/images/smilies/');
-	}
-	if ( !get_option(CM_OPTION_AUTOPRINT) ) {
-		update_option(CM_OPTION_AUTOPRINT, 'on');
-	}
-
-	delete_option(CM_OPTION_USERLEVEL);
-
 	if ( get_option(CM_OPTION_VERSION) != CM_VERSION ) {
+
 		update_option(CM_OPTION_VERSION, CM_VERSION);
+
+		if( !get_option(CM_OPTION_MOODS) ) {
+
+			$inital_moods = array(
+				array('mood_name' => 'Alarmed', 'mood_image' => 'icon_eek.gif'),
+				array('mood_name' => 'Angry', 'mood_image' => 'icon_evil.gif'),
+				array('mood_name' => 'Bored', 'mood_image' => 'icon_neutral.gif'),
+				array('mood_name' => 'Confused', 'mood_image' => 'icon_confused.gif'),
+				array('mood_name' => 'Cool', 'mood_image' => 'icon_cool.gif'),
+				array('mood_name' => 'Esctatic', 'mood_image' => 'icon_biggrin.gif'),
+				array('mood_name' => 'Flirtatious', 'mood_image' => 'icon_wink.gif'),
+				array('mood_name' => 'Happy', 'mood_image' => 'icon_smile.gif'),
+				array('mood_name' => 'Mischievous', 'mood_image' => 'icon_twisted.gif'),
+				array('mood_name' => 'Playful', 'mood_image' => 'icon_razz.gif'),
+				array('mood_name' => 'Sad', 'mood_image' => 'icon_cry.gif'),
+				array('mood_name' => 'Sickly', 'mood_image' => 'icon_sad.gif'),
+				array('mood_name' => 'Surprised', 'mood_image' => 'icon_surprised.gif')
+			);
+
+			update_option(CM_OPTION_MOODS, $inital_moods);
+			update_option(CM_OPTION_INDEX, count($inital_moods) );
+		}
+		if ( !get_option(CM_OPTION_DIR) ) {
+			update_option(CM_OPTION_DIR, '/wp-includes/images/smilies/');
+		}
+		if ( !get_option(CM_OPTION_AUTOPRINT) ) {
+			update_option(CM_OPTION_AUTOPRINT, 'on');
+		}
+
 	}
 
 } // cm_install
 
-register_activation_hook(__FILE__, 'cm_install');
+if( strpos($_SERVER['PHP_SELF'], 'wp-admin/') !== false ) {
+	add_action('init', 'cm_install');
+}
 
 ?>
