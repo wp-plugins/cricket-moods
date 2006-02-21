@@ -396,15 +396,25 @@ function cm_admin_style() { ?>
 	background-color: #c00;
 }
 
-#mood_image_list td {
-		padding: 1em .25em;
-		margin: 0;
-		border: 1px solid silver;
+#mood_image_box {
+	max-height: 15em;
+	overflow: scroll;
+	margin: 1em 0;
 }
 
-table#mood_image_list {
-		text-align: center;
-		width: 100%;
+#mood_image_list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+#mood_image_list li {
+	margin: 0 .5ex;
+	padding: 2px;
+	white-space: nowrap;
+	display: inline;
+	border: 1px solid silver;
+	line-height: 190%;
 }
 
 #cm_auto_print {
@@ -577,22 +587,15 @@ function cm_list_mood_images() {
 	reset($files);
 ?>
 
-<table id="mood_image_list">
+<div id="mood_image_box">
+<ul id="mood_image_list">
 <?php
-	$i = 0;
 	foreach ($files as $n => $s) {
-		if ($i == 0) {
-			echo '<tr>';
-		}
-		echo "<td><img src='$s'><br>$n</td>";
-		$i++;
-		if ($i == 6) {
-			echo '</tr>';
-			$i = 0;
-		}
+		echo "<li><img src='$s'> $n</li>";
 	}
 ?>
-</table>
+</ul>
+</div>
 <?php
 } // cm_list_mood_images
 
@@ -686,7 +689,7 @@ function cm_manage_panel() {
 
 		// Finally, update the mood list.
 		uasort($mood_list, 'cm_mood_sort');
-		update_usermeta($user_ID, CM_OPTION_MOODS, stripslashes_deep($mood_list) );
+		update_usermeta($user_ID, CM_OPTION_MOODS, $wpdb->escape( serialize( stripslashes_deep($mood_list) ) ) );
 
 		if ( empty($err) ) {
 			echo '<div id="message" class="updated fade"><p>Moods updated!</p></div>';
