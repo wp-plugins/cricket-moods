@@ -21,6 +21,9 @@ Cats and Dogs."  You could then upload little cloud and sun images and use those
 with the tags instead of the pre-defined mood smilies.  You could even leave the
 tag text or the tag images blank to have either just text or just images.
 
+New in Cricket Moods 3.0 is the ability for every user (contributor and higher)
+to keep their own personal list of moods.
+
 
 == Installation ==
 
@@ -36,13 +39,13 @@ Upgrades from Cricket Moods 2.x are automagic.
 
 == Usage ==
 
-By default, Cricket Moods will automatically print each post's moods just below
-the time for each post.
+By default, Cricket Moods will automatically print each post's moods just above
+each post's content.
 
-Using the "Cricket Moods" panel under "Options" in the WordPress administrative
-area, you can add, modify, and delete moods as you see fit.  Leaving the "Mood
-Name" blank will cause Cricket Moods not to display any text with that mood's
-image for a purely pictorial representation of your mood.  Conversely, you can
+Using the "Moods" panel under "Manage" in the WordPress administrative area, you
+can add, modify, and delete moods as you see fit.  Leaving the "Mood Name" blank
+will cause Cricket Moods not to display any text with that mood's image for a
+purely pictorial representation of your mood.  Conversely, you can
 leave the "Image File" blank and no smilie or other image will be shown with
 that mood.  Deleting a mood will also remove any references to that mood from
 your blog posts.
@@ -98,16 +101,22 @@ Not that I know of.  I certainly didn't program one in.
 
 == Known Issues ==
 
-* Things get a little fuzzy when you change the author of an existing post with mood tags.  If the two authors do not have the exact same mood list, the associated moods may seem to unexpectedly change or not show at all.  It is recommended that you disassociate all the moods from a post before changing the post's author.
+* Things get a little fuzzy when you change the author of an existing post with
+mood tags.  If the two authors do not have the exact same mood list, the
+associated moods may seem to unexpectedly change or not show at all.  It is
+recommended that you disassociate all the moods from a post before changing the
+post's author.
 
-* Editing the post of another user will cause *that* user's moods to be displayed, not yours.  This is an unavoidable feature.
+* Editing the post of another user will cause *that* user's moods to be
+displayed, not yours.  This is an unavoidable feature.
 
 
 == Screenshots ==
 
 1.  An example of a blog post with moods as the reader sees it.
 2.  A view of the "Write Post" screen with the selectable moods.
-3.  The options panel.
+3.  The options panel for administrators.
+4.  The Mood management panel.
 
 
 == Change Log ==

@@ -1,11 +1,12 @@
 === Cricket Moods Changelog ===
 
-?: Version 3.0
+20060220: Version 3.0
 * Fixed major bug causing a general metadata failure with other plugins.
 * Added per-user moods capability.
 * Personal moods will henceforth be editable only by using the "Manage" admin panel.
 * Plugin _requires_ Wordpress 2.0.1 or greater because:
-* Mood list now displayed in the collapsable sidebar with the other "Write Post" options
+* Mood list now displayed in the collapsable sidebar with the other "Write Post" options.
+* Bug fixes.
 
 20050829: Version 2.0
 * Switched to a two digit versioning system to coincide with the wp-plugins.net system.
