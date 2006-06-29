@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 3.0
+Version: 3.1
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -33,7 +33,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * It is not necessary to modify anything in this file. *
  ************************************************** !! **/
 
-define('CM_VERSION', '3.0');
+define('CM_VERSION', '3.1');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
@@ -534,7 +534,9 @@ function cm_admin_panel() {
 <div class="wrap" id="cm_options_panel">
 <h2>Cricket Moods Options</h2>
 
-<p>To modify your personal list of moods, visit the <a href="edit.php?page=cm-manage-moods">Manage &raquo; Moods panel</a>.
+<p>To modify your personal list of moods, visit the <a href="edit.php?page=cm-manage-moods">Manage &raquo; Moods panel</a>.</p>
+
+<p><pre><? print_r( get_option('siteurl') ) ?></pre></p>
 
 <form method="post">
 
@@ -749,7 +751,7 @@ function cm_install() {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
 	}
 
-	if ( get_option(CM_OPTION_VERSION) != CM_VERSION ) {
+	if ( get_option(CM_OPTION_VERSION) != CM_VERSION || $_GET['cm_force_install'] == 'true' ) {
 
 		update_option(CM_OPTION_VERSION, CM_VERSION);
 
@@ -775,7 +777,8 @@ function cm_install() {
 			update_option(CM_OPTION_INDEX, count($inital_moods) );
 		}
 		if ( !get_option(CM_OPTION_DIR) ) {
-			update_option(CM_OPTION_DIR, '/wp-includes/images/smilies/');
+			$basepath = parse_url( get_option('siteurl') );
+			update_option(CM_OPTION_DIR,  $basepath['path'] .'/wp-includes/images/smilies/');
 		}
 		if ( !get_option(CM_OPTION_AUTOPRINT) ) {
 			update_option(CM_OPTION_AUTOPRINT, 'on');
