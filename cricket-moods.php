@@ -536,8 +536,6 @@ function cm_admin_panel() {
 
 <p>To modify your personal list of moods, visit the <a href="edit.php?page=cm-manage-moods">Manage &raquo; Moods panel</a>.</p>
 
-<p><pre><? print_r( get_option('siteurl') ) ?></pre></p>
-
 <form method="post">
 
 <table width="100%" cellspacing="2" cellpadding="5" class="editform">
