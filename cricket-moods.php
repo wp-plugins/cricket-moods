@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 3.1
+Version: 3.2
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -33,7 +33,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * It is not necessary to modify anything in this file. *
  ************************************************** !! **/
 
-define('CM_VERSION', '3.1');
+define('CM_VERSION', '3.2');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
@@ -463,7 +463,7 @@ The option page.
 */
 function cm_admin_panel() {
 	// Proceed with the options panel.
-	global $wpdb, $table_prefix;
+	global $wpdb;
 
 	$mood_list = cm_process_moods(-1);
 	$index = cm_get_index(-1);
@@ -647,7 +647,7 @@ cm_manage_panel
 
 **/
 function cm_manage_panel() {
-	global $wpdb, $user_ID, $table_prefix;
+	global $wpdb, $user_ID;
 
 	$mood_list = cm_process_moods();
 	$index = cm_get_index();
@@ -664,7 +664,7 @@ function cm_manage_panel() {
 				// If the user chose to delete this mood, delete the mood and any references to it.
 				if ( !empty($_POST["cm_delete_$value"]) ) {
 
-					if ( $wpdb->query("DELETE {$table_prefix}postmeta FROM {$table_prefix}postmeta JOIN {$table_prefix}posts ON ({$table_prefix}postmeta.post_id={$table_prefix}posts.ID) WHERE meta_key='mood' AND meta_value='$value' AND post_author=$user_ID") !== false ) {
+					if ( $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='mood' AND meta_value='$value' AND post_author=$user_ID") !== false ) {
 						unset($mood_list[$value]);
 					}
 
@@ -685,11 +685,11 @@ function cm_manage_panel() {
 		}
 
 		// Update the option containing the index.
-		update_usermeta($user_ID, CM_OPTION_INDEX, $wpdb->escape($index) );
+		update_usermeta($user_ID, CM_OPTION_INDEX, $index);
 
 		// Finally, update the mood list.
 		uasort($mood_list, 'cm_mood_sort');
-		update_usermeta($user_ID, CM_OPTION_MOODS, $wpdb->escape( serialize( stripslashes_deep($mood_list) ) ) );
+		update_usermeta($user_ID, CM_OPTION_MOODS, stripslashes_deep($mood_list) );
 
 		if ( empty($err) ) {
 			echo '<div id="message" class="updated fade"><p>Moods updated!</p></div>';
@@ -743,9 +743,9 @@ Initialize the default mood list.
 */
 function cm_install() {
 
-	// This plugin will not work with WP < 2.0.1
+	// This plugin will not work with WP < 2.0.5
 	$wp_var = explode('.', $GLOBALS['wp_version']);
-	if( $wp_var[0] < 2 || ( empty($wp_var[2]) && $wp_var[1] == 0 ) ) {
+	if( $wp_var[0] < 2 || ( $wp_var[2] < 5 && $wp_var[1] == 0 ) ) {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
 	}
 

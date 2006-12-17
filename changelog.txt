@@ -1,5 +1,8 @@
 === Cricket Moods Changelog ===
 
+20061216: Version 3.2
+* Fix for recent issues with updating per-user mood lists in WordPress 2.0.5.
+
 20060628: Version 3.1
 * Made it automatically adjust the initial mood image direcory if WordPress is not installed in the root of the domain.
 
