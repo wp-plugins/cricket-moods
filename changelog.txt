@@ -1,5 +1,8 @@
 === Cricket Moods Changelog ===
 
+20061220: Version 3.3
+* Dirty fix for people still having issues.
+
 20061216: Version 3.2
 * Fix for recent issues with updating per-user mood lists in WordPress 2.0.5.
 

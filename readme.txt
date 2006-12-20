@@ -1,5 +1,5 @@
 === Cricket Moods ===
-Version: 3.2
+Version: 3.3
 Tags: mood, meta
 Website: http://dev.wp-plugins.org/wiki/CricketMoods
 
