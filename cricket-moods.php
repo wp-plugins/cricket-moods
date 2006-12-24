@@ -425,27 +425,39 @@ function cm_admin_style() { ?>
 	line-height: 190%;
 }
 
-#cm_auto_print {
-	width: 1.5em;
-	height: 1.5em;
-}
-
-#cm_reset {
-	border: 2px groove maroon;
+.cm_danger {
+	border: 2px groove red;
 	padding: 0 1em;
-	margin: 1em .5em;
-	background-color: transparent;
 }
 
-#cm_reset:hover {
+.cm_danger:hover {
 	background-color: #FFDDDD;
 	color: black;
 }
 
-#cm_reset legend {
-	font-size: 1.1em;
+.cm_danger legend {
+	font-size: 1.2em;
 	font-weight: bold;
 }
+
+#cm_reset_moods {
+	float: left;
+	width: 45%;
+}
+
+#cm_strip_posts {
+	float: right;
+	width: 45%;
+}
+
+p#cm_chirp {
+	clear: both;
+	font-style: italic;
+	font-size: .85em;
+	text-align: center;
+	padding-top: 1em;
+}
+
 </style>
 <!-- end Cricket Moods -->
 
@@ -497,6 +509,17 @@ function cm_admin_panel() {
 		delete_option(CM_OPTION_MOODS);
 		delete_option(CM_OPTION_INDEX);
 		cm_install(true);
+		echo '<div id="message" class="updated fade"><p>Moods reset!</p></div>';
+	}
+
+	elseif ( isset($_POST['cm_strip_moods']) ){
+		$results =  $wpdb->query("DELETE FROM ". $wpdb->prefix ."postmeta WHERE meta_key='". CM_META_KEY ."'");
+		if ( $results === false ) {
+			echo '<div id="message" class="error fade"><p>Strip unsuccessful.</p></div>';
+		}
+		else {
+			echo '<div id="message" class="updated fade"><p>Stripped '. $results .' moods from all posts.</p></div>';
+		}
 	}
 
 	// If the user pushed the update button.
@@ -569,12 +592,12 @@ function cm_admin_panel() {
 
 <table width="100%" cellspacing="2" cellpadding="5" class="editform">
 <tr valign="top"<?php cm_err('cm_image_dir', $err) ?>>
-<th width="33%" scope="row"><label for="cm_image_dir">Mood image directory:</label></th>
+<th width="33%" scope="row">Mood image directory:</th>
 	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo get_option(CM_OPTION_DIR) ?>" /><br/>
 	Directory containing the images associated with the moods.  Should be relative to the root of your domain.</td>
 </tr>
 <tr valign="top"<?php cm_err('cm_auto_print', $err) ?>>
-<th width="33%" scope="row"><label for="cm_auto_print">Automatically print moods:</label></th>
+<th width="33%" scope="row">Automatically print moods:</th>
 	<td>
 		<input type="radio" id="cm_auto_print_above" name="cm_auto_print" value="above" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "above" ) echo 'checked="true"' ?>/> <label for="cm_auto_print_above">Above</label><br/>
 		<input type="radio" id="cm_auto_print_below" name="cm_auto_print" value="below" <?php if ( get_option(CM_OPTION_AUTOPRINT) == "below" ) echo 'checked="true"' ?>/> <label for="cm_auto_print_below">Below</label><br/>
@@ -599,11 +622,18 @@ cm_edit_moods_table( cm_process_moods(-1) , $index, $err); ?>
 </form>
 
 <form method="post">
-<fieldset id="cm_reset"><legend>Reset Moods</legend>
+<fieldset class="cm_danger" id="cm_reset_moods"><legend>Reset Moods</legend>
 <p>Clicking this button will reset the blog's default mood list to the built-in "factory default" mood list.  This will not affect any user's personal mood list.</p>
-<p><input type="submit" name="cm_reset_moods" value="Reset moods to factory defaults!" onclick="return confirm('Are you sure that you want to reset your moods?');"/></p>
+<p class="submit"><input type="submit" name="cm_reset_moods" value="Reset moods to factory defaults!" onclick="return confirm('Are you sure that you want to reset your moods?');"/></p>
+</fieldset>
+
+<fieldset class="cm_danger" id="cm_strip_moods"><legend>Strip Posts</legend>
+<p>Clicking this button will strip <strong>all</strong> posts from <strong>all users</strong> of any moods associated with them.</p>
+<p class="submit"><input type="submit" name="cm_strip_moods" value="Strip moods from all posts!" onclick="return confirm('Are you sure that you want to strip every post ever posted on this blog of moods?');"/></p>
 </fieldset>
 </form>
+
+<p id="cm_chirp">* chirp * chirp *</p>
 
 </div>
 <?php } // cm_admin_panel
@@ -694,6 +724,16 @@ function cm_manage_panel() {
 	if ( isset($_POST['cm_reset_moods']) ) {
 		delete_usermeta($user_ID, CM_OPTION_MOODS);
 		delete_usermeta($user_ID, CM_OPTION_INDEX);
+		echo '<div id="message" class="updated fade"><p>Moods reset!</p></div>';
+	}
+	elseif ( isset($_POST['cm_strip_moods']) ){
+		$results =  $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='". CM_META_KEY ."' AND post_author=$user_ID");
+		if ( $results === false ) {
+			echo '<div id="message" class="error fade"><p>Strip unsuccessful.</p></div>';
+		}
+		else {
+			echo '<div id="message" class="updated fade"><p>Stripped '. $results .' moods from your posts.</p></div>';
+		}
 	}
 
 	// Begin updating moods from manage panel.
@@ -708,7 +748,7 @@ function cm_manage_panel() {
 				// If the user chose to delete this mood, delete the mood and any references to it.
 				if ( !empty($_POST["cm_delete_$value"]) ) {
 
-					if ( $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='mood' AND meta_value='$value' AND post_author=$user_ID") !== false ) {
+					if ( $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='". CM_META_KEY."' AND meta_value='$value' AND post_author=$user_ID") !== false ) {
 						unset($mood_list[$value]);
 					}
 
@@ -774,11 +814,18 @@ function cm_manage_panel() {
 </form>
 
 <form method="post">
-<fieldset id="cm_reset"><legend>Reset Moods</legend>
-<p>Clicking this button will delete your personal list of moods, causing the plugin to reinitialize your list with the moods specified in the Cricket Moods option panel.  Use this as a last resord only, as it will likely cause custom moods used in past posts to not appear.</p>
-<p><input type="submit" name="cm_reset_moods" value="Reset moods to blog defaults!" onclick="return confirm('Are you sure that you want to reset your moods?');"/></p>
+<fieldset class="cm_danger" id="cm_reset_moods"><legend>Reset Moods</legend>
+<p>Clicking this button will delete your personal list of moods, causing the plugin to reinitialize your list with the moods specified in the Cricket Moods option panel.  Use this as a last resort only, as it will likely cause custom moods used in past posts to not appear.</p>
+<p class="submit"><input type="submit" name="cm_reset_moods" value="Reset moods to blog defaults!" onclick="return confirm('Are you sure that you want to reset your moods?');"/>
+</fieldset>
+
+<fieldset class="cm_danger" id="cm_strip_moods"><legend>Strip Posts</legend>
+<p>Clicking this button will strip <strong>all</strong> of your posts of any moods associated with them.</p>
+<p class="submit"><input type="submit" name="cm_strip_moods" value="Strip moods from all posts!" onclick="return confirm('Are you sure that you want to strip your posts of moods?');"/></p>
 </fieldset>
 </form>
+
+<p id="cm_chirp">* chirp * chirp *</p>
 
 </div>
 

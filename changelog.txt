@@ -3,6 +3,7 @@
 20061223: Version 3.3
 * Dirty fix for people still having issues (maybe?).
 * Added buttons to reset both personal and the global mood lists.
+* Added buttons to strip moods from per-user and all-user posts.
 * Added an option to specify whether the moods should be placed above or below the content.
 
 20061216: Version 3.2
