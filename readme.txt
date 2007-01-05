@@ -1,5 +1,5 @@
 === Cricket Moods ===
-Version: 3.2
+Version: 3.3
 Tags: mood, meta
 Website: http://dev.wp-plugins.org/wiki/CricketMoods
 
@@ -40,21 +40,23 @@ Upgrades from Cricket Moods 2.x are automagic.
 == Usage ==
 
 By default, Cricket Moods will automatically print each post's moods just above
-each post's content.
+each post's content.  You may also have it automatically print the mood just
+below the post content by changing the appropriate option in the Cricket Moods
+options panel.
 
 Using the "Moods" panel under "Manage" in the WordPress administrative area, you
 can add, modify, and delete moods as you see fit.  Leaving the "Mood Name" blank
 will cause Cricket Moods not to display any text with that mood's image for a
-purely pictorial representation of your mood.  Conversely, you can
-leave the "Image File" blank and no smilie or other image will be shown with
-that mood.  Deleting a mood will also remove any references to that mood from
-your blog posts.
+purely pictorial representation of your mood.  Conversely, you can leave the
+"Image File" blank and no smilie or other image will be shown with that mood.
+Deleting a mood will also remove any references to that mood from your blog
+posts.
 
 = Advanced Usage =
 
-If you want your moods to be displayed somewhere other than the default
-location, you must place cm_the_moods() somewhere inside The Loop and disable
-AutoPrint in the Cricket Moods options.  When called with no parameters,
+If you want your moods to be displayed somewhere other than directly above or
+below the content, you must place cm_the_moods() somewhere inside The Loop and
+disable AutoPrint in the Cricket Moods options.  When called with no parameters,
 cm_the_moods() only prints the mood image followed by the mood name, an
 ampersand, and any more moods followed by ampersands.  For example, on a post
 with the moods "Happy" and "Bored" it will print:
