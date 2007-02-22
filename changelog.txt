@@ -1,5 +1,8 @@
 === Cricket Moods Changelog ===
 
+20070221: Version 3.4
+* The plugin is now translatable.  The POT file can be found in the subversion repository.
+
 20070105: Version 3.3
 * Dirty fix for people still having issues (maybe?).
 * Added buttons to reset both personal and the global mood lists.
