@@ -1,5 +1,5 @@
 === Cricket Moods ===
-Stable tag: 3.4
+Stable tag: trunk
 Tested up to: 2.1.2
 Requires at least: 2.0.5
 Contributors: kccricket
@@ -14,7 +14,7 @@ add one or more "moods" to every post.
 Cricket Moods is a flexible "mood tag" WordPress plugin.  It allows an author to
 add one or more "moods" to every post.  Each mood can be associated with an
 image file.  The result would be that the author could have an animated happy
-smiley face next to the words I'm Happy! for every post she wishes.
+smiley face next to the words *I'm Happy!* for every post she wishes.
 
 Cricket Moods presents you with a list of available moods when you go to create
 or edit a post.  There is no need for you to remember your list of moods.  Using
@@ -35,7 +35,7 @@ to keep their own personal list of moods.
 
 == Installation ==
 
-1.  Place cricket-moods.php into `/wp-content/plugins`.
+1.  Place `cricket-moods.php` into `/wp-content/plugins`.
 2.  Activate the Cricket Moods plugin from the "Plugin Management" panel of
     WordPress.
 
@@ -60,42 +60,47 @@ purely pictorial representation of your mood.  Conversely, you can leave the
 Deleting a mood will also remove any references to that mood from your blog
 posts.
 
-= Advanced Usage =
+= `cm_the_moods()` =
 
 If you want your moods to be displayed somewhere other than directly above or
-below the content, you must place cm_the_moods() somewhere inside The Loop and
+below the content, you must place `cm_the_moods()` somewhere inside The Loop and
 disable AutoPrint in the Cricket Moods options.  When called with no parameters,
-cm_the_moods() only prints the mood image followed by the mood name, an
+`cm_the_moods()` only prints the mood image followed by the mood name, an
 ampersand, and any more moods followed by ampersands.  For example, on a post
 with the moods "Happy" and "Bored" it will print:
+
   `<img src="/wp-images/smilies/icon_happy.gif" alt="Happy emoticon" /> Happy
     &amp; <img src="/wp-images/smilies/icon_neutral.gif" alt="Bored emoticon" />
     Bored`
 
 If there are no moods for the current post, it will print nothing.
 
-cm_the_moods() can take three parameters:
-  `<?php cm_the_moods('separator', 'before', 'after'); ?>`
-  'separator'
-    (string) Text to place in between multiple moods. Default is ' &amp; '.
-  'before'
-    (string) Text to place before the first mood. Default is nothing.
-  'after'
-    (string) Text to place after the last mood. Default is nothing.
+`cm_the_moods()` can take three parameters:
+
+	`<?php cm_the_moods('separator', 'before', 'after'); ?>`
+
+* `separator` (string) Text to place in between multiple moods. Default is `' &amp; '`.
+* `before` (string) Text to place before the first mood. Default is nothing.
+* `after` (string) Text to place after the last mood. Default is nothing.
+
 
 A good way to implement this would be:
-  `<?php cm_the_moods(' and ', '<p>My mood is: ', '.</p>'); ?>`
 
-You can also use cm_has_moods() to determine if the current post or a specific
+	`<?php cm_the_moods(' and ', '<p>My mood is: ', '.</p>'); ?>`
+
+
+= `cm_has_moods()` =
+
+You can also use `cm_has_moods()` to determine if the current post or a specific
 post has moods associated with it.  It will return true or false accordingly.
 
-cm_has_moods() can take one parameter:
-  `<?php cm_has_moods(post_id); ?>`
-  post_id
-    (integer) The ID of the post you are inquiring about.  Default is the ID of
-    the current post.
+`cm_has_moods()` can take one parameter:
 
-cm_has_moods() must be used inside The Loop if post_id is not provided.
+	`<?php cm_has_moods(post_id); ?>`
+
+* `post_id` (integer) The ID of the post you are inquiring about.  Default is the ID of the current post.
+
+`cm_has_moods()` must be used inside The Loop if `post_id` is not provided.
 
 
 == Frequently Asked Questions ==
