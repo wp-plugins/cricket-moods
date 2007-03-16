@@ -1,7 +1,15 @@
 === Cricket Moods ===
-Version: 3.2
-Tags: mood, meta
-Website: http://dev.wp-plugins.org/wiki/CricketMoods
+Stable tag: 3.4
+Tested up to: 2.1.2
+Requires at least: 2.0.5
+Contributors: kccricket
+Donate link: http://kccricket.net/projects/
+Tags: mood, meta, post
+
+Cricket Moods is a flexible "mood tag" WordPress plugin.  It allows an author to
+add one or more "moods" to every post.
+
+== Description ==
 
 Cricket Moods is a flexible "mood tag" WordPress plugin.  It allows an author to
 add one or more "moods" to every post.  Each mood can be associated with an
@@ -40,32 +48,34 @@ Upgrades from Cricket Moods 2.x are automagic.
 == Usage ==
 
 By default, Cricket Moods will automatically print each post's moods just above
-each post's content.
+each post's content.  You may also have it automatically print the mood just
+below the post content by changing the appropriate option in the Cricket Moods
+options panel.
 
 Using the "Moods" panel under "Manage" in the WordPress administrative area, you
 can add, modify, and delete moods as you see fit.  Leaving the "Mood Name" blank
 will cause Cricket Moods not to display any text with that mood's image for a
-purely pictorial representation of your mood.  Conversely, you can
-leave the "Image File" blank and no smilie or other image will be shown with
-that mood.  Deleting a mood will also remove any references to that mood from
-your blog posts.
+purely pictorial representation of your mood.  Conversely, you can leave the
+"Image File" blank and no smilie or other image will be shown with that mood.
+Deleting a mood will also remove any references to that mood from your blog
+posts.
 
 = Advanced Usage =
 
-If you want your moods to be displayed somewhere other than the default
-location, you must place cm_the_moods() somewhere inside The Loop and disable
-AutoPrint in the Cricket Moods options.  When called with no parameters,
+If you want your moods to be displayed somewhere other than directly above or
+below the content, you must place cm_the_moods() somewhere inside The Loop and
+disable AutoPrint in the Cricket Moods options.  When called with no parameters,
 cm_the_moods() only prints the mood image followed by the mood name, an
 ampersand, and any more moods followed by ampersands.  For example, on a post
 with the moods "Happy" and "Bored" it will print:
-  <img src="/wp-images/smilies/icon_happy.gif" alt="Happy emoticon" /> Happy
+  `<img src="/wp-images/smilies/icon_happy.gif" alt="Happy emoticon" /> Happy
     &amp; <img src="/wp-images/smilies/icon_neutral.gif" alt="Bored emoticon" />
-    Bored
+    Bored`
 
 If there are no moods for the current post, it will print nothing.
 
 cm_the_moods() can take three parameters:
-  <?php cm_the_moods('separator', 'before', 'after'); ?>
+  `<?php cm_the_moods('separator', 'before', 'after'); ?>`
   'separator'
     (string) Text to place in between multiple moods. Default is ' &amp; '.
   'before'
@@ -74,13 +84,13 @@ cm_the_moods() can take three parameters:
     (string) Text to place after the last mood. Default is nothing.
 
 A good way to implement this would be:
-  <?php cm_the_moods(' and ', '<p>My mood is: ', '.</p>'); ?>
+  `<?php cm_the_moods(' and ', '<p>My mood is: ', '.</p>'); ?>`
 
 You can also use cm_has_moods() to determine if the current post or a specific
 post has moods associated with it.  It will return true or false accordingly.
 
 cm_has_moods() can take one parameter:
-  <?php cm_has_moods(post_id); ?>
+  `<?php cm_has_moods(post_id); ?>`
   post_id
     (integer) The ID of the post you are inquiring about.  Default is the ID of
     the current post.
@@ -106,7 +116,6 @@ mood tags.  If the two authors do not have the exact same mood list, the
 associated moods may seem to unexpectedly change or not show at all.  It is
 recommended that you disassociate all the moods from a post before changing the
 post's author.
-
 * Editing the post of another user will cause *that* user's moods to be
 displayed, not yours.  This is an unavoidable feature.
 
@@ -119,28 +128,21 @@ displayed, not yours.  This is an unavoidable feature.
 4.  The Mood management panel.
 
 
-== Change Log ==
-
-See changelog.txt
-
-
 == Copying ==
 
-Copyright (c) 2006 Keith Constable
+Cricket Moods: A flexible mood tag plugin for the WordPress publishing platform.
+Copyright (c) 2007 Keith Constable
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
