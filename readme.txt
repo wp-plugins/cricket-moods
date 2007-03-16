@@ -60,7 +60,7 @@ purely pictorial representation of your mood.  Conversely, you can leave the
 Deleting a mood will also remove any references to that mood from your blog
 posts.
 
-= Advanced Usage =
+= `cm_the_moods()` =
 
 If you want your moods to be displayed somewhere other than directly above or
 below the content, you must place `cm_the_moods()` somewhere inside The Loop and
@@ -76,19 +76,28 @@ with the moods "Happy" and "Bored" it will print:
 If there are no moods for the current post, it will print nothing.
 
 `cm_the_moods()` can take three parameters:
+
 	`<?php cm_the_moods('separator', 'before', 'after'); ?>`
+
 * `separator` (string) Text to place in between multiple moods. Default is `' &amp; '`.
 * `before` (string) Text to place before the first mood. Default is nothing.
 * `after` (string) Text to place after the last mood. Default is nothing.
 
+
 A good way to implement this would be:
+
 	`<?php cm_the_moods(' and ', '<p>My mood is: ', '.</p>'); ?>`
 
-You can also use cm_has_moods() to determine if the current post or a specific
+
+= `cm_has_moods()` =
+
+You can also use `cm_has_moods()` to determine if the current post or a specific
 post has moods associated with it.  It will return true or false accordingly.
 
 `cm_has_moods()` can take one parameter:
+
 	`<?php cm_has_moods(post_id); ?>`
+
 * `post_id` (integer) The ID of the post you are inquiring about.  Default is the ID of the current post.
 
 `cm_has_moods()` must be used inside The Loop if `post_id` is not provided.
