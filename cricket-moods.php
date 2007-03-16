@@ -9,24 +9,22 @@ Author URI: http://kccricket.net/
 */
 
 /**
+Cricket Moods: A flexible mood tag plugin for the WordPress publishing platform.
 Copyright (c) 2007 Keith Constable
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 /** !! **************************************************
@@ -49,6 +47,11 @@ define('CM_IMAGE_DIR', get_option(CM_OPTION_DIR) );
 define('CM_META_KEY', 'mood');
 
 load_plugin_textdomain('cricket-moods','wp-content/plugins/');
+
+if ($_GET['style'] == 'true') {
+	cm_admin_style();
+	exit();
+}
 
 /**
 cm_the_moods
@@ -382,10 +385,10 @@ cm_admin_style
 Prints the stylesheet that makes my crap
 look decent.
 */
-function cm_admin_style() { ?>
+function cm_admin_style() {
 
-<!-- Cricket Moods styles -->
-<style type="text/css">
+header('Content-Type: text/css');
+?>
 
 #cm_moodlist img {
 	vertical-align: middle;
@@ -394,7 +397,8 @@ function cm_admin_style() { ?>
 
 #cm_mood_table {
 	text-align: center;
-	width: 100%;
+	width: 80%;
+	margin: 0 auto;
 }
 
 #cm_mood_table input.cm_text {
@@ -406,9 +410,14 @@ function cm_admin_style() { ?>
 }
 
 #mood_image_box {
-	max-height: 15em;
+	float: left;
+	width: 18%;
+	max-height: 40em;
 	overflow: scroll;
-	margin: 1em 0;
+}
+
+#mood_image_box h4 {
+	margin: 0;
 }
 
 #mood_image_list {
@@ -418,12 +427,9 @@ function cm_admin_style() { ?>
 }
 
 #mood_image_list li {
-	margin: 0 .5ex;
+	margin: 2px 0;
 	padding: 2px;
-	white-space: nowrap;
-	display: inline;
-	border: 1px solid silver;
-	line-height: 190%;
+	background-color: silver;
 }
 
 .cm_danger {
@@ -439,6 +445,11 @@ function cm_admin_style() { ?>
 .cm_danger legend {
 	font-size: 1.2em;
 	font-weight: bold;
+}
+
+#cm_options_panel hr {
+	clear: both;
+	border-color: transparent;
 }
 
 #cm_reset_moods {
@@ -459,12 +470,25 @@ p#cm_chirp {
 	padding-top: 1em;
 }
 
-</style>
-<!-- end Cricket Moods -->
+<?php
+} // cm_admin_style
 
-<?php } // cm_admin_style
 
-add_action('admin_head', 'cm_admin_style');
+function cm_admin_style_link() {
+	echo '<link rel="stylesheet" href="'. $_SERVER[PHP_SELF] .'?style=true" type="text/css" />';
+?>
+<script type="text/javascript" language="javascript">
+	// <![CDATA[
+	function cmUE(id) {
+		document.getElementById("cm_image_preview_" + id).src = "<?php echo get_option(CM_OPTION_DIR); ?>" + this.name;
+	}
+	// ]]>
+</script>
+
+<?php
+}
+
+add_action('admin_head', 'cm_admin_style_link');
 
 
 
@@ -543,7 +567,7 @@ function cm_admin_panel() {
 			update_option(CM_OPTION_AUTOPRINT, $_POST['cm_auto_print']);
 		}
 
-				foreach ($_POST as $name => $value) {
+		foreach ($_POST as $name => $value) {
 
 			// Existing moods start with 'cm_id_'.
 			if ( substr($name, 0, 6) == 'cm_id_' ) {
@@ -609,12 +633,12 @@ function cm_admin_panel() {
 
 <h3><?php _e('Default Moods', 'cricket-moods') ?></h3>
 	<p><?php _e('Use the table below to modify the <strong>default list of moods</strong> for new users.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.', 'cricket-moods');
-	if($_GET['showimages'] != 'true') { ?> <?php _e('You can also view a table of <a href="options-general.php?page=cm-options&amp;showimages=true">available mood images</a> in the mood image directory.', 'cricket-moods'); } ?></p>
+	/*if($_GET['showimages'] != 'true') { ?> <?php _e('You can also view a table of <a href="options-general.php?page=cm-options&amp;showimages=true">available mood images</a> in the mood image directory.', 'cricket-moods'); }*/ ?></p>
 
 <?php
-	if( $_GET['showimages'] == 'true' ) {
+// 	if( $_GET['showimages'] == 'true' ) {
 		cm_list_mood_images();
-	}
+// 	}
 
 cm_edit_moods_table( cm_process_moods(-1) , $index, $err); ?>
 
@@ -622,7 +646,7 @@ cm_edit_moods_table( cm_process_moods(-1) , $index, $err); ?>
 <input type="submit" name="cm_options_update" value="<?php _e('Update Options', 'cricket-moods') ?> &raquo;"/>
 </p>
 </form>
-
+<hr/>
 <form method="post">
 <fieldset class="cm_danger" id="cm_reset_moods"><legend><?php _e('Reset Moods', 'cricket-moods') ?></legend>
 <p><?php _e('Clicking this button will reset the blog\'s default mood list to the built-in "factory default" mood list.  This will not affect any user\'s personal mood list.', 'cricket-moods') ?></p>
@@ -659,6 +683,7 @@ function cm_list_mood_images() {
 ?>
 
 <div id="mood_image_box">
+<h4>Images</h4>
 <ul id="mood_image_list">
 <?php
 	foreach ($files as $n => $s) {
@@ -677,10 +702,25 @@ cm_edit_moods_table
 
 **/
 function cm_edit_moods_table($mood_list, $index, $err = array() ) {
+
+$dir = get_option(CM_OPTION_DIR);
+
 ?>
 	<table id="cm_mood_table">
-		<thead><tr><th><?php _e('ID', 'cricket-moods') ?></th><th><?php _e('Mood Name', 'cricket-moods') ?></th><th><?php _e('Image File', 'cricket-moods') ?></th><th><?php _e('Delete', 'cricket-moods') ?></th></tr></thead>
-		<tfoot><tr><th><?php _e('ID', 'cricket-moods') ?></th><th><?php _e('Mood Name', 'cricket-moods') ?></th><th><?php _e('Image File', 'cricket-moods') ?></th><th><?php _e('Delete', 'cricket-moods') ?></th></tr></tfoot>
+		<thead><tr>
+			<th><?php _e('ID', 'cricket-moods') ?></th>
+			<th><?php _e('Mood Name', 'cricket-moods') ?></th>
+			<th><?php _e('Image', 'cricket-moods') ?></th>
+			<th><?php _e('Image File', 'cricket-moods') ?></th>
+			<th><?php _e('Delete', 'cricket-moods') ?></th>
+		</tr></thead>
+		<tfoot><tr>
+			<th><?php _e('ID', 'cricket-moods') ?></th>
+			<th><?php _e('Mood Name', 'cricket-moods') ?></th>
+			<th><?php _e('Image', 'cricket-moods') ?></th>
+			<th><?php _e('Image File', 'cricket-moods') ?></th>
+			<th><?php _e('Delete', 'cricket-moods') ?></th>
+		</tr></tfoot>
 <?php
 	// List the existing moods.
 	ksort($mood_list);
@@ -689,7 +729,8 @@ function cm_edit_moods_table($mood_list, $index, $err = array() ) {
 		<tr<?php if ($alt == true) { echo ' class="alternate'.cm_err("cm_id_$id", $err, ' error').'"'; $alt = false; } else { cm_err("cm_id_$id", $err); $alt = true; } ?> valign="middle">
 			<td><?php echo $id ?><input type="hidden" name="cm_id_<?php echo $id ?>" value="<?php echo $id ?>"/></td>
 			<td><input class="cm_text" type="text" name="cm_name_<?php echo $id ?>" value="<?php echo wp_specialchars($mood['mood_name'], true) ?>"/></td>
-			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" value="<?php echo wp_specialchars($mood['mood_image'], true) ?>"/></td>
+			<td><?php if(!empty($mood['mood_image'])) { echo '<img src="'. $dir.$mood['mood_image'] .'" id="cm_image_preview_'. $id .'"/>'; } ?></td>
+			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" onchange="cmUE(<?php echo $id ?>);" value="<?php echo wp_specialchars($mood['mood_image'], true) ?>"/></td>
 			<td class="delete"><input type="checkbox" name="cm_delete_<?php echo $id ?>" onclick="return confirm('<?php _e('Are you sure you want to delete this mood?', 'cricket-moods') ?>');"/></td>
 		</tr>
 <?php
@@ -701,8 +742,9 @@ function cm_edit_moods_table($mood_list, $index, $err = array() ) {
 		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
 			<td><?php echo $i ?><input type="hidden" name="cm_new_id_<?php echo $i ?>" value="<?php echo $i ?>"/></td>
 			<td><input class="cm_text" type="text" name="cm_new_name_<?php echo $i ?>"/></td>
+			<td><img src="images/notice.gif"/></td>
 			<td><input class="cm_text" type="text" name="cm_new_image_<?php echo $i ?>"/></td>
-			<td>-</td>
+			<td></td>
 		</tr>
 <?php
 	}
@@ -799,13 +841,13 @@ function cm_manage_panel() {
 
 <form method="post">
 	<p><?php _e('Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.', 'cricket-moods');
-	if($_GET['showimages'] != 'true') { ?> <?php _e('You can also view a table of <a href="edit.php?page=cm-manage-moods&amp;showimages=true">available mood images</a> in the mood image directory.', 'cricket-moods'); } ?></p>
+	/* if($_GET['showimages'] != 'true') { ?> <?php _e('You can also view a table of <a href="edit.php?page=cm-manage-moods&amp;showimages=true">available mood images</a> in the mood image directory.', 'cricket-moods'); } */?></p>
 	<p><strong><?php _e('Deleting a mood will also remove any references to that mood from your posts.', 'cricket-moods') ?></strong></p>
 
 <?php
-	if( $_GET['showimages'] == 'true' ) {
+// 	if( $_GET['showimages'] == 'true' ) {
 		cm_list_mood_images();
-	}
+// 	}
 
 	cm_edit_moods_table(cm_process_moods(), $index, $err);
 ?>
