@@ -1,5 +1,5 @@
 === Cricket Moods ===
-Stable tag: trunk
+Stable tag: 3.4
 Tested up to: 2.1.2
 Requires at least: 2.0.5
 Contributors: kccricket
