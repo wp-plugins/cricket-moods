@@ -31,7 +31,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
  * It is not necessary to modify anything in this file. *
  ************************************************** !! **/
 
-define('CM_VERSION', '3.4');
+define('CM_VERSION', '3.5');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
@@ -240,8 +240,9 @@ from $_POST.
 */
 function cm_update_post_moods($post_ID, $moods = null) {
 
-	// If no $mood, pull from $_POST.
+	// If no $moods passed, pull from $_POST.
 	if( !isset($moods) ) {
+		if( $_POST['cm_moods_submitted'] !== 'true' ) return $post_ID;
 		$moods = cm_get_posted_moods();
 	}
 
@@ -285,7 +286,6 @@ function cm_update_post_moods($post_ID, $moods = null) {
 } // cm_update_moods
 
 add_action('save_post', 'cm_update_post_moods');
-add_action('edit_post', 'cm_update_post_moods');
 
 
 
@@ -335,11 +335,11 @@ function cm_list_select_moods() {
 		echo str_replace( ' ', '&nbsp;', wptexturize($mood_info['mood_name']) ) ."</label></span>\n";
 	}
 
+	echo '<input type="hidden" name="cm_moods_submitted" value="true">';
 	echo '</div></fieldset>';
 
 } // cm_list_select_moods
 
-// add_action('simple_edit_form', 'cm_list_select_moods');  // Probably not necessary any more
 add_action('dbx_post_sidebar', 'cm_list_select_moods');
 
 
@@ -618,7 +618,7 @@ function cm_admin_panel() {
 <table width="100%" cellspacing="2" cellpadding="5" class="editform">
 <tr valign="top"<?php cm_err('cm_image_dir', $err) ?>>
 <th width="33%" scope="row"><?php _e('Mood image directory:', 'cricket-moods') ?></th>
-	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo get_option(CM_OPTION_DIR) ?>" /><br/>
+	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo wp_special_chars( get_option(CM_OPTION_DIR) ) ?>" /><br/>
 	<?php _e('Directory containing the images associated with the moods.  Should be relative to the root of your domain.', 'cricket-moods') ?></td>
 </tr>
 <tr valign="top"<?php cm_err('cm_auto_print', $err) ?>>
@@ -891,9 +891,9 @@ Initialize the default mood list.
 */
 function cm_install($force = false) {
 
-	// This plugin will not work with WP < 2.0.5
+	// This plugin will not work with WP < 2.1.2
 	$wp_var = explode('.', $GLOBALS['wp_version']);
-	if( $wp_var[0] < 2 || ( $wp_var[1] == 0 && $wp_var[2] < 5 ) ) {
+	if( $wp_var[0] < 2 || ( $wp_var[1] == 1 && $wp_var[2] < 2 ) ) {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
 	}
 
