@@ -1,5 +1,10 @@
 === Cricket Moods Changelog ===
 
+20070323: Version 3.5
+* Removed redundant cm_update_post_moods action hook (this may make it incompatible with WP < 2.1.2).
+* Added sanity check to make sure that moods were supposed to be POSTed before trying to act on those moods (thanks Jana! <jana@janasjibberish.com>).
+* Sanitized the output of the Image Directory on the options panel.
+
 20070316: Version 3.4
 * The plugin is now translatable.  The POT file can be found in the subversion repository.
 * Added a German translation thanks to Michael Biech <MichaelBiech@web.de>.
