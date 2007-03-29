@@ -891,7 +891,7 @@ Initialize the default mood list.
 */
 function cm_install($force = false) {
 
-	// This plugin will not work with WP < 2.1.2
+	// This plugin will not work with WP < 2.0.9
 	$wp_var = explode('.', $GLOBALS['wp_version']);
 	if( $wp_var[0] < 2 || ( $wp_var[1] == 0 && $wp_var[2] < 9 ) ) {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
