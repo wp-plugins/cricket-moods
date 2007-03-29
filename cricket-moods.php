@@ -618,7 +618,7 @@ function cm_admin_panel() {
 <table width="100%" cellspacing="2" cellpadding="5" class="editform">
 <tr valign="top"<?php cm_err('cm_image_dir', $err) ?>>
 <th width="33%" scope="row"><?php _e('Mood image directory:', 'cricket-moods') ?></th>
-	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo wp_special_chars( get_option(CM_OPTION_DIR) ) ?>" /><br/>
+	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo wp_specialchars( get_option(CM_OPTION_DIR) ) ?>" /><br/>
 	<?php _e('Directory containing the images associated with the moods.  Should be relative to the root of your domain.', 'cricket-moods') ?></td>
 </tr>
 <tr valign="top"<?php cm_err('cm_auto_print', $err) ?>>
