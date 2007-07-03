@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 3.5
+Version: 3.6
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -31,7 +31,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
  * It is not necessary to modify anything in this file. *
  ************************************************** !! **/
 
-define('CM_VERSION', '3.5');
+define('CM_VERSION', '3.6');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
@@ -671,13 +671,16 @@ cm_list_mood_images
 
 **/
 function cm_list_mood_images() {
-	$d = dir($_SERVER['DOCUMENT_ROOT'].CM_IMAGE_DIR);
-	while ( $entry = $d->read() ) {
-		if ( eregi('\.gif|\.png|\.jp(g|eg?)', $entry) ) {
-			$files[$entry] = CM_IMAGE_DIR . $entry;
+	$d = @dir($_SERVER['DOCUMENT_ROOT'].CM_IMAGE_DIR);
+	$files = array();
+	if ( !empty($d) ) {
+		while ( false !== ( $entry = $d->read() ) ) {
+			if ( eregi('\.gif|\.png|\.jp(g|eg?)', $entry) ) {
+				$files[$entry] = CM_IMAGE_DIR . $entry;
+			}
 		}
+		$d->close();
 	}
-	$d->close();
 	natcasesort($files);
 	reset($files);
 ?>
@@ -891,7 +894,7 @@ Initialize the default mood list.
 */
 function cm_install($force = false) {
 
-	// This plugin will not work with WP < 2.0.9
+	// This plugin will not work with WP < 2.1.2
 	$wp_var = explode('.', $GLOBALS['wp_version']);
 	if( $wp_var[0] < 2 || ( $wp_var[1] == 0 && $wp_var[2] < 9 ) ) {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
