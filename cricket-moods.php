@@ -690,7 +690,7 @@ function cm_list_mood_images() {
 <ul id="mood_image_list">
 <?php
 	foreach ($files as $n => $s) {
-		echo "<li><img src='$s'> $n</li>";
+		echo "<li><img src='". htmlspecialchars($s, ENT_QUOTES) ."'> ". htmlspecialchars($n, ENT_QUOTES) ."</li>";
 	}
 ?>
 </ul>

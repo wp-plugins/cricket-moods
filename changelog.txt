@@ -1,5 +1,8 @@
 === Cricket Moods Changelog ===
 
+Unreleased: Version 3.6
+* Fixed a silly omission in cm_list_mood_images for the manage and admin panels.
+
 20070323: Version 3.5
 * Removed redundant cm_update_post_moods action hook (this may make it incompatible with WP < 2.1.2).
 * Added sanity check to make sure that moods were supposed to be POSTed before trying to act on those moods (thanks Jana! <jana@janasjibberish.com>).
