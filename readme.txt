@@ -1,7 +1,7 @@
 === Cricket Moods ===
 Stable tag: 3.5
-Tested up to: 2.1.2
-Requires at least: 2.0.9
+Tested up to: 2.2.2
+Requires at least: 2.1.2
 Contributors: kccricket
 Donate link: http://kccricket.net/projects/
 Tags: mood, meta, post
