@@ -242,7 +242,8 @@ function cm_update_post_moods($post_ID, $moods = null) {
 
 	// If no $moods passed, pull from $_POST.
 	if( !isset($moods) ) {
-		if( $_POST['cm_moods_submitted'] !== 'true' ) return $post_ID;
+		if( !current_user_can('edit_post', $post_ID) ) return $post_ID;
+		if( !wp_verify_nonce($_POST['cricket-moods-verify_key'], 'cricket-moods') ) return $post_ID;
 		$moods = cm_get_posted_moods();
 	}
 
@@ -335,7 +336,7 @@ function cm_list_select_moods() {
 		echo str_replace( ' ', '&nbsp;', wptexturize($mood_info['mood_name']) ) ."</label></span>\n";
 	}
 
-	echo '<input type="hidden" name="cm_moods_submitted" value="true">';
+	echo '<input type="hidden" name="cricket-moods-verify_key" id="your-plugin-verify_key" value="' . wp_create_nonce('cricket-moods') . '" />';
 	echo '</div></fieldset>';
 
 } // cm_list_select_moods
@@ -632,15 +633,12 @@ function cm_admin_panel() {
 </table>
 
 <h3><?php _e('Default Moods', 'cricket-moods') ?></h3>
-	<p><?php _e('Use the table below to modify the <strong>default list of moods</strong> for new users.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.', 'cricket-moods');
-	/*if($_GET['showimages'] != 'true') { ?> <?php _e('You can also view a table of <a href="options-general.php?page=cm-options&amp;showimages=true">available mood images</a> in the mood image directory.', 'cricket-moods'); }*/ ?></p>
+	<p><?php _e('Use the table below to modify the <strong>default list of moods</strong> for new users.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.', 'cricket-moods'); ?></p>
 
 <?php
-// 	if( $_GET['showimages'] == 'true' ) {
-		cm_list_mood_images();
-// 	}
-
-cm_edit_moods_table( cm_process_moods(-1) , $index, $err); ?>
+	cm_list_mood_images();
+	cm_edit_moods_table( cm_process_moods(-1) , $index, $err);
+?>
 
 <p class="submit">
 <input type="submit" name="cm_options_update" value="<?php _e('Update Options', 'cricket-moods') ?> &raquo;"/>
@@ -843,15 +841,11 @@ function cm_manage_panel() {
 </pre></div><?php } ?>
 
 <form method="post">
-	<p><?php _e('Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.', 'cricket-moods');
-	/* if($_GET['showimages'] != 'true') { ?> <?php _e('You can also view a table of <a href="edit.php?page=cm-manage-moods&amp;showimages=true">available mood images</a> in the mood image directory.', 'cricket-moods'); } */?></p>
+	<p><?php _e('Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.', 'cricket-moods'); ?></p>
 	<p><strong><?php _e('Deleting a mood will also remove any references to that mood from your posts.', 'cricket-moods') ?></strong></p>
 
 <?php
-// 	if( $_GET['showimages'] == 'true' ) {
-		cm_list_mood_images();
-// 	}
-
+	cm_list_mood_images();
 	cm_edit_moods_table(cm_process_moods(), $index, $err);
 ?>
 
