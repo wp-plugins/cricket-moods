@@ -474,13 +474,22 @@ p#cm_chirp {
 } // cm_admin_style
 
 
+function cm_add_jquery() {
+	global $wp_scripts;
+	$wp_scripts->enqueue('jquery');
+}
+if( strpos($_SERVER['PHP_SELF'], 'wp-admin/') !== false ) {
+	add_action('wp_print_scripts', 'cm_add_jquery');
+}
+
+
 function cm_admin_head() { ?>
 <!-- Cricket Moods stuff -->
 <link rel="stylesheet" href="<?php echo $_SERVER[PHP_SELF] ?>?style=true" type="text/css" />
 <script type="text/javascript" language="javascript">
 	// <![CDATA[
 	function cmUE(id) {
-		document.getElementById("cm_image_preview_" + id).src = "<?php echo get_option(CM_OPTION_DIR); ?>" + this.name;
+		$("img#cm_image_preview_"+id).attr("src","<?php echo wp_specialchars(get_option(CM_OPTION_DIR)); ?>"+$("input#cm_image_" + id).val());
 	}
 	// ]]>
 </script>
@@ -620,7 +629,7 @@ function cm_admin_panel() {
 
 <p><?php _e('To modify your personal list of moods, visit the <a href="edit.php?page=cm-manage-moods">Manage &raquo; Moods panel</a>', 'cricket-moods') ?>.</p>
 
-<form method="post">
+<form method="post" action="">
 
 <table width="100%" cellspacing="2" cellpadding="5" class="editform">
 <tr valign="top"<?php cm_err('cm_image_dir', $err) ?>>
@@ -652,7 +661,7 @@ function cm_admin_panel() {
 <?php wp_nonce_field('update-options_cricket-moods'); ?>
 </form>
 <hr/>
-<form method="post">
+<form method="post" action="">
 <fieldset class="cm_danger" id="cm_reset_moods"><legend><?php _e('Reset Moods', 'cricket-moods') ?></legend>
 <p><?php _e('Clicking this button will reset the blog\'s default mood list to the built-in "factory default" mood list.  This will not affect any user\'s personal mood list.', 'cricket-moods') ?></p>
 <p class="submit"><input type="submit" name="cm_reset_moods" value="<?php _e('Reset moods to factory defaults!', 'cricket-moods') ?>" onclick="return confirm('<?php _e('Are you sure that you want to reset your moods?', 'cricket-moods') ?>');"/></p>
@@ -696,7 +705,7 @@ function cm_list_mood_images() {
 <ul id="mood_image_list">
 <?php
 	foreach ($files as $n => $s) {
-		echo "<li><img src='". htmlspecialchars($s, ENT_QUOTES) ."'> ". htmlspecialchars($n, ENT_QUOTES) ."</li>";
+		echo "<li><img src='". htmlspecialchars($s, ENT_QUOTES) ."'/> ". htmlspecialchars($n, ENT_QUOTES) ."</li>";
 	}
 ?>
 </ul>
@@ -739,7 +748,7 @@ $dir = get_option(CM_OPTION_DIR);
 			<td><?php echo $id ?><input type="hidden" name="cm_id_<?php echo $id ?>" value="<?php echo $id ?>"/></td>
 			<td><input class="cm_text" type="text" name="cm_name_<?php echo $id ?>" value="<?php echo wp_specialchars($mood['mood_name'], true) ?>"/></td>
 			<td><?php if(!empty($mood['mood_image'])) { echo '<img src="'. $dir.$mood['mood_image'] .'" id="cm_image_preview_'. $id .'"/>'; } ?></td>
-			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" onchange="cmUE(<?php echo $id ?>);" value="<?php echo wp_specialchars($mood['mood_image'], true) ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" id="cm_image_<?php echo $id ?>" onchange="cmUE(<?php echo $id ?>);" value="<?php echo wp_specialchars($mood['mood_image'], true) ?>"/></td>
 			<td class="delete"><input type="checkbox" name="cm_delete_<?php echo $id ?>" onclick="return confirm('<?php _e('Are you sure you want to delete this mood?', 'cricket-moods') ?>');"/></td>
 		</tr>
 <?php
@@ -751,8 +760,8 @@ $dir = get_option(CM_OPTION_DIR);
 		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
 			<td><?php echo $i ?><input type="hidden" name="cm_new_id_<?php echo $i ?>" value="<?php echo $i ?>"/></td>
 			<td><input class="cm_text" type="text" name="cm_new_name_<?php echo $i ?>"/></td>
-			<td><img src="images/notice.gif"/></td>
-			<td><input class="cm_text" type="text" name="cm_new_image_<?php echo $i ?>"/></td>
+			<td><img src="images/notice.gif" id="cm_image_preview_<?php echo $i ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_new_image_<?php echo $i ?>" id="cm_image_<?php echo $i ?>" onchange="cmUE(<?php echo $i ?>);"/></td>
 			<td></td>
 		</tr>
 <?php
@@ -853,7 +862,7 @@ function cm_manage_panel() {
 <?php print_r(get_usermeta($GLOBALS['user_ID'], CM_OPTION_MOODS)); ?>
 </pre></div><?php } ?>
 
-<form method="post">
+<form method="post" action="">
 	<p><?php _e('Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.', 'cricket-moods'); ?></p>
 	<p><strong><?php _e('Deleting a mood will also remove any references to that mood from your posts.', 'cricket-moods') ?></strong></p>
 
@@ -869,10 +878,10 @@ function cm_manage_panel() {
 <?php wp_nonce_field('update-options_cricket-moods'); ?>
 </form>
 
-<form method="post">
+<form method="post" action="">
 <fieldset class="cm_danger" id="cm_reset_moods"><legend><?php _e('Reset Moods', 'cricket-moods') ?></legend>
 <p><?php _e('Clicking this button will delete your personal list of moods, causing the plugin to reinitialize your list with the moods specified in the Cricket Moods option panel.  Use this as a last resort only, as it will likely cause custom moods used in past posts to not appear.', 'cricket-moods') ?></p>
-<p class="submit"><input type="submit" name="cm_reset_moods" value="<?php _e('Reset moods to blog defaults!', 'cricket-moods') ?>" onclick="return confirm('<?php _e('Are you sure that you want to reset your moods?', 'cricket-moods') ?>');"/>
+<p class="submit"><input type="submit" name="cm_reset_moods" value="<?php _e('Reset moods to blog defaults!', 'cricket-moods') ?>" onclick="return confirm('<?php _e('Are you sure that you want to reset your moods?', 'cricket-moods') ?>');"/></p>
 </fieldset>
 
 <fieldset class="cm_danger" id="cm_strip_moods"><legend><?php _e('Strip Posts', 'cricket-moods') ?></legend>
