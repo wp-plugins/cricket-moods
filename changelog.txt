@@ -6,6 +6,8 @@ Unreleased: Version 3.6
 * Fix for a possible problem in the manage and admin panels that may cause some mood images to not display.
 * Tried to beef up security by adding nonce and capabilities checks in various places.
 * Changed add_*_page calls to use capabilities instead of user levels.
+* Switched out my broken JS for jquery.
+* The blank mood lines will now update their mood images properly.
 
 20070323: Version 3.5
 * Removed redundant cm_update_post_moods action hook (this may make it incompatible with WP < 2.1.2).

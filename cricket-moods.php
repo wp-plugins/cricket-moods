@@ -489,7 +489,7 @@ function cm_admin_head() { ?>
 <script type="text/javascript" language="javascript">
 	// <![CDATA[
 	function cmUE(id) {
-		$("img#cm_image_preview_"+id).attr("src","<?php echo wp_specialchars(get_option(CM_OPTION_DIR)); ?>"+$("input#cm_image_" + id).val());
+		jQuery("img#cm_image_preview_"+id).attr("src","<?php echo wp_specialchars(get_option(CM_OPTION_DIR)); ?>"+jQuery("input#cm_image_" + id).val());
 	}
 	// ]]>
 </script>
@@ -634,7 +634,7 @@ function cm_admin_panel() {
 <table width="100%" cellspacing="2" cellpadding="5" class="editform">
 <tr valign="top"<?php cm_err('cm_image_dir', $err) ?>>
 <th width="33%" scope="row"><?php _e('Mood image directory:', 'cricket-moods') ?></th>
-	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo wp_specialchars( get_option(CM_OPTION_DIR) ) ?>" /><br/>
+	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo form_option(CM_OPTION_DIR) ?>" /><br/>
 	<?php _e('Directory containing the images associated with the moods.  Should be relative to the root of your domain.', 'cricket-moods') ?></td>
 </tr>
 <tr valign="top"<?php cm_err('cm_auto_print', $err) ?>>
