@@ -242,7 +242,7 @@ function cm_update_post_moods($post_ID, $moods = null) {
 
 	// If no $moods passed, pull from $_POST.
 	if( !isset($moods) ) {
-		if( !current_user_can('edit_post', $post_ID) || !wp_verify_nonce($_POST['cricket-moods_verify_key'], 'update-postmoods_cricket-moods') ) return $post_ID;
+		if( !current_user_can('edit_post', $post_ID) || !wp_verify_nonce($_POST['cricket-moods_verify-key'], 'update-postmoods_cricket-moods') ) return $post_ID;
 		$moods = cm_get_posted_moods();
 	}
 
