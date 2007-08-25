@@ -573,6 +573,9 @@ function cm_admin_panel() {
 					$_POST['cm_image_dir'] .= '/';
 				}
 				update_option( CM_OPTION_DIR, $_POST['cm_image_dir'] );
+				if( !is_readable($_POST['cm_image_dir']) ) {
+					$err['cm_image_dir'] == __('The image directory you supplied either does not exist or is not accessible.', 'cricket-moods');
+				}
 			} else {
 				$err['cm_image_dir'] = __('You <em>must</em> supply an image directory!', 'cricket-moods');
 			}

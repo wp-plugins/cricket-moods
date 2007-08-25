@@ -8,6 +8,7 @@ Unreleased: Version 3.6
 * Changed add_*_page calls to use capabilities instead of user levels.
 * Switched out my broken JS for jquery.
 * The blank mood lines will now update their mood images properly.
+* Added a warning if the selected mood image directory is not readable.
 
 20070323: Version 3.5
 * Removed redundant cm_update_post_moods action hook (this may make it incompatible with WP < 2.1.2).
