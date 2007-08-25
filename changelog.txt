@@ -5,7 +5,6 @@ Unreleased: Version 3.6
 * Fixed a silly omission in cm_list_mood_images for the manage and admin panels.
 * Fix for a possible problem in the manage and admin panels that may cause some mood images to not display.
 * Tried to beef up security by adding nonce and capabilities checks in various places.
-* Changed add_*_page calls to use capabilities instead of user levels.
 * Switched out my broken JS for jquery.
 * The blank mood lines will now update their mood images properly.
 * Added a warning if the selected mood image directory is not readable.

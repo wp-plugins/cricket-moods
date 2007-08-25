@@ -43,7 +43,6 @@ define('CM_OPTION_AUTOPRINT', 'cricketmoods_autoprint');
 
 define('CM_OPTION_VERSION', 'cricketmoods_version');
 
-define('CM_IMAGE_DIR', get_option(CM_OPTION_DIR) );
 define('CM_META_KEY', 'mood');
 
 load_plugin_textdomain('cricket-moods','wp-content/plugins/');
@@ -91,7 +90,7 @@ function cm_the_moods($separator=' &amp; ', $before = null, $after = null, $retu
 
 				// Only print the img tag if the mood has an associated image.
 				if( !empty( $mood_list[$mood_id]['mood_image'] ) ) {
-					$output .= '<img src="'. CM_IMAGE_DIR . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' '. __('emoticon', 'cricket-moods') .'" /> ';
+					$output .= '<img src="'. get_option(CM_OPTION_DIR) . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' '. __('emoticon', 'cricket-moods') .'" /> ';
 				}
 
 				$output .= $mood_name;
@@ -330,7 +329,7 @@ function cm_list_select_moods() {
 
 		// If the mood has an associated image, show that just before the label.
 		if( !empty($mood_info['mood_image']) )
-			echo "<img src='". CM_IMAGE_DIR . $mood_info['mood_image'] ."' />";
+			echo "<img src='". get_option(CM_OPTION_DIR) . $mood_info['mood_image'] ."' />";
 
 		echo str_replace( ' ', '&nbsp;', wptexturize($mood_info['mood_name']) ) ."</label></span>\n";
 	}
@@ -573,8 +572,8 @@ function cm_admin_panel() {
 					$_POST['cm_image_dir'] .= '/';
 				}
 				update_option( CM_OPTION_DIR, $_POST['cm_image_dir'] );
-				if( !is_readable($_POST['cm_image_dir']) ) {
-					$err['cm_image_dir'] == __('The image directory you supplied either does not exist or is not accessible.', 'cricket-moods');
+				if( !is_readable($_SERVER['DOCUMENT_ROOT'].$_POST['cm_image_dir']) ) {
+					$err['cm_image_dir'] = __('The image directory you supplied either does not exist or is not accessible.', 'cricket-moods');
 				}
 			} else {
 				$err['cm_image_dir'] = __('You <em>must</em> supply an image directory!', 'cricket-moods');
@@ -689,12 +688,12 @@ cm_list_mood_images
 
 **/
 function cm_list_mood_images() {
-	$d = @dir($_SERVER['DOCUMENT_ROOT'].CM_IMAGE_DIR);
+	$d = @dir($_SERVER['DOCUMENT_ROOT'].get_option(CM_OPTION_DIR));
 	$files = array();
 	if ( !empty($d) ) {
 		while ( false !== ( $entry = $d->read() ) ) {
 			if ( eregi('\.gif|\.png|\.jp(g|eg?)', $entry) ) {
-				$files[$entry] = CM_IMAGE_DIR . $entry;
+				$files[$entry] = get_option(CM_OPTION_DIR) . $entry;
 			}
 		}
 		$d->close();
