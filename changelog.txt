@@ -1,6 +1,6 @@
 === Cricket Moods Changelog ===
 
-Unreleased: Version 3.6
+20070829: Version 3.6
 * Now fails silently if the mood image directory does not exist.
 * Fixed a silly omission in cm_list_mood_images for the manage and admin panels.
 * Fix for a possible problem in the manage and admin panels that may cause some mood images to not display.
