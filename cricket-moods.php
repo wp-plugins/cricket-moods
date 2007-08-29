@@ -43,7 +43,6 @@ define('CM_OPTION_AUTOPRINT', 'cricketmoods_autoprint');
 
 define('CM_OPTION_VERSION', 'cricketmoods_version');
 
-define('CM_IMAGE_DIR', get_option(CM_OPTION_DIR) );
 define('CM_META_KEY', 'mood');
 
 load_plugin_textdomain('cricket-moods','wp-content/plugins/');
@@ -91,7 +90,7 @@ function cm_the_moods($separator=' &amp; ', $before = null, $after = null, $retu
 
 				// Only print the img tag if the mood has an associated image.
 				if( !empty( $mood_list[$mood_id]['mood_image'] ) ) {
-					$output .= '<img src="'. CM_IMAGE_DIR . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' '. __('emoticon', 'cricket-moods') .'" /> ';
+					$output .= '<img src="'. get_option(CM_OPTION_DIR) . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' '. __('emoticon', 'cricket-moods') .'" /> ';
 				}
 
 				$output .= $mood_name;
@@ -242,8 +241,7 @@ function cm_update_post_moods($post_ID, $moods = null) {
 
 	// If no $moods passed, pull from $_POST.
 	if( !isset($moods) ) {
-		if( !current_user_can('edit_post', $post_ID) ) return $post_ID;
-		if( !wp_verify_nonce($_POST['cricket-moods-verify_key'], 'cricket-moods') ) return $post_ID;
+		if( !current_user_can('edit_post', $post_ID) || !wp_verify_nonce($_POST['cricket-moods_verify-key'], 'update-postmoods_cricket-moods') ) return $post_ID;
 		$moods = cm_get_posted_moods();
 	}
 
@@ -331,12 +329,12 @@ function cm_list_select_moods() {
 
 		// If the mood has an associated image, show that just before the label.
 		if( !empty($mood_info['mood_image']) )
-			echo "<img src='". CM_IMAGE_DIR . $mood_info['mood_image'] ."' />";
+			echo "<img src='". get_option(CM_OPTION_DIR) . $mood_info['mood_image'] ."' />";
 
 		echo str_replace( ' ', '&nbsp;', wptexturize($mood_info['mood_name']) ) ."</label></span>\n";
 	}
 
-	echo '<input type="hidden" name="cricket-moods-verify_key" id="your-plugin-verify_key" value="' . wp_create_nonce('cricket-moods') . '" />';
+	echo '<input type="hidden" name="cricket-moods_verify-key" id="cricket-moods_verify-key" value="' . wp_create_nonce('update-postmoods_cricket-moods') . '" />';
 	echo '</div></fieldset>';
 
 } // cm_list_select_moods
@@ -475,21 +473,30 @@ p#cm_chirp {
 } // cm_admin_style
 
 
-function cm_admin_style_link() {
-	echo '<link rel="stylesheet" href="'. $_SERVER[PHP_SELF] .'?style=true" type="text/css" />';
-?>
+function cm_add_jquery() {
+	global $wp_scripts;
+	$wp_scripts->enqueue('jquery');
+}
+if( strpos($_SERVER['PHP_SELF'], 'wp-admin/') !== false ) {
+	add_action('wp_print_scripts', 'cm_add_jquery');
+}
+
+
+function cm_admin_head() { ?>
+<!-- Cricket Moods stuff -->
+<link rel="stylesheet" href="<?php echo $_SERVER[PHP_SELF] ?>?style=true" type="text/css" />
 <script type="text/javascript" language="javascript">
 	// <![CDATA[
 	function cmUE(id) {
-		document.getElementById("cm_image_preview_" + id).src = "<?php echo get_option(CM_OPTION_DIR); ?>" + this.name;
+		jQuery("img#cm_image_preview_"+id).attr("src","<?php echo wp_specialchars(get_option(CM_OPTION_DIR)); ?>"+jQuery("input#cm_image_" + id).val());
 	}
 	// ]]>
 </script>
-
+<!-- End Cricket Moods -->
 <?php
 }
 
-add_action('admin_head', 'cm_admin_style_link');
+add_action('admin_head', 'cm_admin_head');
 
 
 
@@ -499,7 +506,7 @@ cm_admin_add_panel
 Adds the option page.
 */
 function cm_admin_add_panel() {
-	add_options_page( __('Cricket Moods', 'cricket-moods'), __('Cricket Moods', 'cricket-moods'), 8, 'cm-options', 'cm_admin_panel');
+	add_options_page( __('Cricket Moods', 'cricket-moods'), __('Cricket Moods', 'cricket-moods'), 'manage_options', 'cm-options', 'cm_admin_panel');
 }
 
 // Add the panel to the admin menu.
@@ -531,95 +538,105 @@ function cm_admin_panel() {
 	$mood_list = cm_process_moods(-1);
 	$index = cm_get_index(-1);
 
-	if ( isset($_POST['cm_reset_moods']) ) {
-		delete_option(CM_OPTION_MOODS);
-		delete_option(CM_OPTION_INDEX);
-		cm_install(true);
-		echo '<div id="message" class="updated fade"><p>'. __('Moods reset!', 'cricket-moods') .'</p></div>';
-	}
-
-	elseif ( isset($_POST['cm_strip_moods']) ){
-		$results =  $wpdb->query("DELETE FROM ". $wpdb->prefix ."postmeta WHERE meta_key='". CM_META_KEY ."'");
-		if ( $results === false ) {
-			echo '<div id="message" class="error fade"><p>'. __('Stripping failed.', 'cricket-moods') .'</p></div>';
+	// Only check the $_POST for updated options if the current user is allowed
+	// to manage options.
+	if ( current_user_can('manage_options') ) {
+		if ( isset($_POST['cm_reset_moods']) ) {
+			check_admin_referer('stripreset-moods_cricket-moods');
+			delete_option(CM_OPTION_MOODS);
+			delete_option(CM_OPTION_INDEX);
+			cm_install(true);
+			echo '<div id="message" class="updated fade"><p>'. __('Moods reset!', 'cricket-moods') .'</p></div>';
 		}
-		else {
-			echo '<div id="message" class="updated fade"><p>'. sprintf( __('Stripped %s moods from all posts.', 'cricket-moods'), $results) .'</p></div>';
-		}
-	}
 
-	// If the user pushed the update button.
-	elseif ( isset($_POST['cm_options_update']) ) {
-		$err = array();
-
-		// We don't like a blank image directory.
-		if ( !empty($_POST['cm_image_dir'] ) ) {
-			// Add a trailing slash if it doesn't have one.
-			if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
-				$_POST['cm_image_dir'] .= '/';
+		elseif ( isset($_POST['cm_strip_moods']) ){
+			check_admin_referer('stripreset-moods_cricket-moods');
+			$results =  $wpdb->query("DELETE FROM ". $wpdb->prefix ."postmeta WHERE meta_key='". CM_META_KEY ."'");
+			if ( $results === false ) {
+				echo '<div id="message" class="error fade"><p>'. __('Stripping failed.', 'cricket-moods') .'</p></div>';
 			}
-			update_option( CM_OPTION_DIR, $_POST['cm_image_dir'] );
-		} else {
-			$err['cm_image_dir'] = __('You <em>must</em> supply an image directory!', 'cricket-moods');
+			else {
+				echo '<div id="message" class="updated fade"><p>'. sprintf( __('Stripped %s moods from all posts.', 'cricket-moods'), $results) .'</p></div>';
+			}
 		}
 
-		// Pretty obvious.  Set or unset the autoprint option.
-		if ( !empty($_POST['cm_auto_print'] ) ) {
-			update_option(CM_OPTION_AUTOPRINT, $_POST['cm_auto_print']);
-		}
+		// If the user pushed the update button.
+		elseif ( isset($_POST['cm_options_update']) ) {
+			check_admin_referer('update-options_cricket-moods');
+			$err = array();
 
-		foreach ($_POST as $name => $value) {
+			// We don't like a blank image directory.
+			if ( !empty($_POST['cm_image_dir'] ) ) {
+				// Add a trailing slash if it doesn't have one.
+				if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
+					$_POST['cm_image_dir'] .= '/';
+				}
+				update_option( CM_OPTION_DIR, $_POST['cm_image_dir'] );
+				if( !is_readable($_SERVER['DOCUMENT_ROOT'].$_POST['cm_image_dir']) ) {
+					$err['cm_image_dir'] = __('The image directory you supplied either does not exist or is not accessible.', 'cricket-moods');
+				}
+			} else {
+				$err['cm_image_dir'] = __('You <em>must</em> supply an image directory!', 'cricket-moods');
+			}
 
-			// Existing moods start with 'cm_id_'.
-			if ( substr($name, 0, 6) == 'cm_id_' ) {
-				// If the user chose to delete this mood, delete the mood.
-				if ( !empty($_POST["cm_delete_$value"]) ) {
-					unset($mood_list[$value]);
-				// Otherwise, update the mood name and image if both the name and the image are not blank.
-				} elseif ( !empty($_POST["cm_name_$value"]) || !empty($_POST["cm_image_$value"]) ) {
-					$mood_list[$value]['mood_name'] = $_POST["cm_name_$value"];
-					$mood_list[$value]['mood_image'] = $_POST["cm_image_$value"];
-				} else {
-					$err['cm_id_'.$value] = sprintf( __('You must supply <em>either</em> a mood name <em>or</em> an image name for the mood with ID # %s!', 'cricket-moods'), $value );
+			// Pretty obvious.  Set or unset the autoprint option.
+			if ( !empty($_POST['cm_auto_print'] ) ) {
+				update_option(CM_OPTION_AUTOPRINT, $_POST['cm_auto_print']);
+			}
+
+			foreach ($_POST as $name => $value) {
+
+				// Existing moods start with 'cm_id_'.
+				if ( substr($name, 0, 6) == 'cm_id_' ) {
+					// If the user chose to delete this mood, delete the mood.
+					if ( !empty($_POST["cm_delete_$value"]) ) {
+						unset($mood_list[$value]);
+					// Otherwise, update the mood name and image if both the name and the image are not blank.
+					} elseif ( !empty($_POST["cm_name_$value"]) || !empty($_POST["cm_image_$value"]) ) {
+						$mood_list[$value]['mood_name'] = $_POST["cm_name_$value"];
+						$mood_list[$value]['mood_image'] = $_POST["cm_image_$value"];
+					} else {
+						$err['cm_id_'.$value] = sprintf( __('You must supply <em>either</em> a mood name <em>or</em> an image name for the mood with ID # %s!', 'cricket-moods'), $value );
+					}
+				}
+
+				// New moods start with 'cm_new_id_' and should have either a name or an image.
+				elseif ( substr($name, 0, 10) == 'cm_new_id_' && ( !empty($_POST["cm_new_name_$value"]) || !empty($_POST["cm_new_image_$value"]) ) ) {
+					// Add the new mood to the mood list.
+					$mood_list[$index++] = array( 'mood_name' => $_POST["cm_new_name_$value"], 'mood_image' => $_POST["cm_new_image_$value"] );
 				}
 			}
 
-			// New moods start with 'cm_new_id_' and should have either a name or an image.
-			elseif ( substr($name, 0, 10) == 'cm_new_id_' && ( !empty($_POST["cm_new_name_$value"]) || !empty($_POST["cm_new_image_$value"]) ) ) {
-				// Add the new mood to the mood list.
-				$mood_list[$index++] = array( 'mood_name' => $_POST["cm_new_name_$value"], 'mood_image' => $_POST["cm_new_image_$value"] );
+			// Update the option containing the index.
+			update_option(CM_OPTION_INDEX, $index);
+
+			// Finally, update the mood list.
+			uasort($mood_list, 'cm_mood_sort');
+			update_option(CM_OPTION_MOODS, stripslashes_deep($mood_list) );
+
+			if ( empty($err) ) {
+				echo '<div id="message" class="updated fade"><p>'. __('Options updated!', 'cricket-moods') .'</p></div>';
+			} else {
+				echo '<div id="message" class="error fade"><ul>';
+				foreach ( $err as $name => $msg ) {
+					echo '<li>'.wptexturize($msg).'</li>';
+				}
+				echo '</ul></div>';
 			}
-		}
-
-		// Update the option containing the index.
-		update_option(CM_OPTION_INDEX, $index);
-
-		// Finally, update the mood list.
-		uasort($mood_list, 'cm_mood_sort');
-		update_option(CM_OPTION_MOODS, stripslashes_deep($mood_list) );
-
-		if ( empty($err) ) {
-			echo '<div id="message" class="updated fade"><p>'. __('Options updated!', 'cricket-moods') .'</p></div>';
-		} else {
-			echo '<div id="message" class="error fade"><ul>';
-			foreach ( $err as $name => $msg ) {
-				echo '<li>'.wptexturize($msg).'</li>';
-			}
-			echo '</ul></div>';
-		}
-	} // End if update button pushed.
+		} // End if update button pushed.
+	} // End if user can manage options.
 ?>
 <div class="wrap" id="cm_options_panel">
 <h2><?php _e('Cricket Moods Options', 'cricket-moods') ?></h2>
 
 <p><?php _e('To modify your personal list of moods, visit the <a href="edit.php?page=cm-manage-moods">Manage &raquo; Moods panel</a>', 'cricket-moods') ?>.</p>
 
-<form method="post">
+<form method="post" action="">
 
 <table width="100%" cellspacing="2" cellpadding="5" class="editform">
 <tr valign="top"<?php cm_err('cm_image_dir', $err) ?>>
 <th width="33%" scope="row"><?php _e('Mood image directory:', 'cricket-moods') ?></th>
-	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo wp_specialchars( get_option(CM_OPTION_DIR) ) ?>" /><br/>
+	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo form_option(CM_OPTION_DIR) ?>" /><br/>
 	<?php _e('Directory containing the images associated with the moods.  Should be relative to the root of your domain.', 'cricket-moods') ?></td>
 </tr>
 <tr valign="top"<?php cm_err('cm_auto_print', $err) ?>>
@@ -643,9 +660,10 @@ function cm_admin_panel() {
 <p class="submit">
 <input type="submit" name="cm_options_update" value="<?php _e('Update Options', 'cricket-moods') ?> &raquo;"/>
 </p>
+<?php wp_nonce_field('update-options_cricket-moods'); ?>
 </form>
 <hr/>
-<form method="post">
+<form method="post" action="">
 <fieldset class="cm_danger" id="cm_reset_moods"><legend><?php _e('Reset Moods', 'cricket-moods') ?></legend>
 <p><?php _e('Clicking this button will reset the blog\'s default mood list to the built-in "factory default" mood list.  This will not affect any user\'s personal mood list.', 'cricket-moods') ?></p>
 <p class="submit"><input type="submit" name="cm_reset_moods" value="<?php _e('Reset moods to factory defaults!', 'cricket-moods') ?>" onclick="return confirm('<?php _e('Are you sure that you want to reset your moods?', 'cricket-moods') ?>');"/></p>
@@ -655,6 +673,7 @@ function cm_admin_panel() {
 <p><?php _e('Clicking this button will strip <strong>all</strong> posts by <strong>all users</strong> of any moods associated with them.', 'cricket-moods') ?></p>
 <p class="submit"><input type="submit" name="cm_strip_moods" value="<?php _e('Strip moods from all posts!', 'cricket-moods') ?>" onclick="return confirm('<?php _e('Are you sure that you want to strip every post ever posted on this blog of moods?', 'cricket-moods') ?>');"/></p>
 </fieldset>
+<?php wp_nonce_field('stripreset-moods_cricket-moods'); ?>
 </form>
 
 <p id="cm_chirp">* chirp * chirp *</p>
@@ -669,12 +688,12 @@ cm_list_mood_images
 
 **/
 function cm_list_mood_images() {
-	$d = @dir($_SERVER['DOCUMENT_ROOT'].CM_IMAGE_DIR);
+	$d = @dir($_SERVER['DOCUMENT_ROOT'].get_option(CM_OPTION_DIR));
 	$files = array();
 	if ( !empty($d) ) {
 		while ( false !== ( $entry = $d->read() ) ) {
 			if ( eregi('\.gif|\.png|\.jp(g|eg?)', $entry) ) {
-				$files[$entry] = CM_IMAGE_DIR . $entry;
+				$files[$entry] = get_option(CM_OPTION_DIR) . $entry;
 			}
 		}
 		$d->close();
@@ -688,7 +707,7 @@ function cm_list_mood_images() {
 <ul id="mood_image_list">
 <?php
 	foreach ($files as $n => $s) {
-		echo "<li><img src='". htmlspecialchars($s, ENT_QUOTES) ."'> ". htmlspecialchars($n, ENT_QUOTES) ."</li>";
+		echo "<li><img src='". htmlspecialchars($s, ENT_QUOTES) ."'/> ". htmlspecialchars($n, ENT_QUOTES) ."</li>";
 	}
 ?>
 </ul>
@@ -731,7 +750,7 @@ $dir = get_option(CM_OPTION_DIR);
 			<td><?php echo $id ?><input type="hidden" name="cm_id_<?php echo $id ?>" value="<?php echo $id ?>"/></td>
 			<td><input class="cm_text" type="text" name="cm_name_<?php echo $id ?>" value="<?php echo wp_specialchars($mood['mood_name'], true) ?>"/></td>
 			<td><?php if(!empty($mood['mood_image'])) { echo '<img src="'. $dir.$mood['mood_image'] .'" id="cm_image_preview_'. $id .'"/>'; } ?></td>
-			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" onchange="cmUE(<?php echo $id ?>);" value="<?php echo wp_specialchars($mood['mood_image'], true) ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_image_<?php echo $id ?>" id="cm_image_<?php echo $id ?>" onchange="cmUE(<?php echo $id ?>);" value="<?php echo wp_specialchars($mood['mood_image'], true) ?>"/></td>
 			<td class="delete"><input type="checkbox" name="cm_delete_<?php echo $id ?>" onclick="return confirm('<?php _e('Are you sure you want to delete this mood?', 'cricket-moods') ?>');"/></td>
 		</tr>
 <?php
@@ -743,8 +762,8 @@ $dir = get_option(CM_OPTION_DIR);
 		<tr<?php if ($alt == true) { echo ' class="alternate"'; $alt = false; } else { $alt = true; } ?> valign="middle">
 			<td><?php echo $i ?><input type="hidden" name="cm_new_id_<?php echo $i ?>" value="<?php echo $i ?>"/></td>
 			<td><input class="cm_text" type="text" name="cm_new_name_<?php echo $i ?>"/></td>
-			<td><img src="images/notice.gif"/></td>
-			<td><input class="cm_text" type="text" name="cm_new_image_<?php echo $i ?>"/></td>
+			<td><img src="images/notice.gif" id="cm_image_preview_<?php echo $i ?>"/></td>
+			<td><input class="cm_text" type="text" name="cm_new_image_<?php echo $i ?>" id="cm_image_<?php echo $i ?>" onchange="cmUE(<?php echo $i ?>);"/></td>
 			<td></td>
 		</tr>
 <?php
@@ -766,68 +785,73 @@ function cm_manage_panel() {
 	$mood_list = cm_process_moods();
 	$index = cm_get_index();
 
-	if ( isset($_POST['cm_reset_moods']) ) {
-		delete_usermeta($user_ID, CM_OPTION_MOODS);
-		delete_usermeta($user_ID, CM_OPTION_INDEX);
-		echo '<div id="message" class="updated fade"><p>'. __('Moods reset!', 'cricket-moods') .'</p></div>';
-	}
-	elseif ( isset($_POST['cm_strip_moods']) ){
-		$results =  $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='". CM_META_KEY ."' AND post_author=$user_ID");
-		if ( $results === false ) {
-			echo '<div id="message" class="error fade"><p>'. __('Stripping failed.', 'cricket-moods') .'</p></div>';
+	if ( current_user_can('edit_posts') ) {
+		if ( isset($_POST['cm_reset_moods']) ) {
+			check_admin_referer('stripreset-moods_cricket-moods');
+			delete_usermeta($user_ID, CM_OPTION_MOODS);
+			delete_usermeta($user_ID, CM_OPTION_INDEX);
+			echo '<div id="message" class="updated fade"><p>'. __('Moods reset!', 'cricket-moods') .'</p></div>';
 		}
-		else {
-			echo '<div id="message" class="updated fade"><p>'. sprintf( __('Stripped %s moods from your posts.', 'cricket-moods'), $results ) .'</p></div>';
+		elseif ( isset($_POST['cm_strip_moods']) ){
+			check_admin_referer('stripreset-moods_cricket-moods');
+			$results =  $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='". CM_META_KEY ."' AND post_author=$user_ID");
+			if ( $results === false ) {
+				echo '<div id="message" class="error fade"><p>'. __('Stripping failed.', 'cricket-moods') .'</p></div>';
+			}
+			else {
+				echo '<div id="message" class="updated fade"><p>'. sprintf( __('Stripped %s moods from your posts.', 'cricket-moods'), $results ) .'</p></div>';
+			}
 		}
-	}
 
-	// Begin updating moods from manage panel.
-	elseif ( isset($_POST['cm_mood_update']) ) {
-		$err = array();
+		// Begin updating moods from manage panel.
+		elseif ( isset($_POST['cm_mood_update']) ) {
+			check_admin_referer('update-options_cricket-moods');
+			$err = array();
 
-		// Parse the $_POST for the CM options we want.
-		foreach ($_POST as $name => $value) {
+			// Parse the $_POST for the CM options we want.
+			foreach ($_POST as $name => $value) {
 
-			// Existing moods start with 'cm_id_'.
-			if ( substr($name, 0, 6) == 'cm_id_' ) {
-				// If the user chose to delete this mood, delete the mood and any references to it.
-				if ( !empty($_POST["cm_delete_$value"]) ) {
+				// Existing moods start with 'cm_id_'.
+				if ( substr($name, 0, 6) == 'cm_id_' ) {
+					// If the user chose to delete this mood, delete the mood and any references to it.
+					if ( !empty($_POST["cm_delete_$value"]) ) {
 
-					if ( $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='". CM_META_KEY."' AND meta_value='$value' AND post_author=$user_ID") !== false ) {
-						unset($mood_list[$value]);
+						if ( $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='". CM_META_KEY."' AND meta_value='$value' AND post_author=$user_ID") !== false ) {
+							unset($mood_list[$value]);
+						}
+
+					// Otherwise, update the mood name and image if both the name and the image are not blank.
+					} elseif ( !empty($_POST["cm_name_$value"]) || !empty($_POST["cm_image_$value"]) ) {
+						$mood_list[$value]['mood_name'] = $_POST["cm_name_$value"];
+						$mood_list[$value]['mood_image'] = $_POST["cm_image_$value"];
+					} else {
+						$err['cm_id_'.$value] = sprintf( __('You must supply <em>either</em> a mood name <em>or</em> an image name for the mood with ID # %s!', 'cricket-moods'), $value );
 					}
+				}
 
-				// Otherwise, update the mood name and image if both the name and the image are not blank.
-				} elseif ( !empty($_POST["cm_name_$value"]) || !empty($_POST["cm_image_$value"]) ) {
-					$mood_list[$value]['mood_name'] = $_POST["cm_name_$value"];
-					$mood_list[$value]['mood_image'] = $_POST["cm_image_$value"];
-				} else {
-					$err['cm_id_'.$value] = sprintf( __('You must supply <em>either</em> a mood name <em>or</em> an image name for the mood with ID # %s!', 'cricket-moods'), $value );
+				// New moods start with 'cm_new_id_' and should have either a name or an image.
+				elseif ( substr($name, 0, 10) == 'cm_new_id_' && ( !empty($_POST["cm_new_name_$value"]) || !empty($_POST["cm_new_image_$value"]) ) ) {
+					// Add the new mood to the mood list.
+					$mood_list[$index++] = array( 'mood_name' => $_POST["cm_new_name_$value"], 'mood_image' => $_POST["cm_new_image_$value"] );
 				}
 			}
 
-			// New moods start with 'cm_new_id_' and should have either a name or an image.
-			elseif ( substr($name, 0, 10) == 'cm_new_id_' && ( !empty($_POST["cm_new_name_$value"]) || !empty($_POST["cm_new_image_$value"]) ) ) {
-				// Add the new mood to the mood list.
-				$mood_list[$index++] = array( 'mood_name' => $_POST["cm_new_name_$value"], 'mood_image' => $_POST["cm_new_image_$value"] );
+			// Update the option containing the index.
+			update_usermeta($user_ID, CM_OPTION_INDEX, $index);
+
+			// Finally, update the mood list.
+			uasort($mood_list, 'cm_mood_sort');
+			update_usermeta($user_ID, CM_OPTION_MOODS, stripslashes_deep($mood_list) );
+
+			if ( empty($err) ) {
+				echo '<div id="message" class="updated fade"><p>'. __('Moods updated!', 'cricket-moods') .'</p></div>';
+			} else {
+				echo '<div id="message" class="error fade"><ul>';
+				foreach ( $err as $msg ) {
+					echo '<li>'.wptexturize($msg).'</li>';
+				}
+				echo '</ul></div>';
 			}
-		}
-
-		// Update the option containing the index.
-		update_usermeta($user_ID, CM_OPTION_INDEX, $index);
-
-		// Finally, update the mood list.
-		uasort($mood_list, 'cm_mood_sort');
-		update_usermeta($user_ID, CM_OPTION_MOODS, stripslashes_deep($mood_list) );
-
-		if ( empty($err) ) {
-			echo '<div id="message" class="updated fade"><p>'. __('Moods updated!', 'cricket-moods') .'</p></div>';
-		} else {
-			echo '<div id="message" class="error fade"><ul>';
-			foreach ( $err as $msg ) {
-				echo '<li>'.wptexturize($msg).'</li>';
-			}
-			echo '</ul></div>';
 		}
 	}
 ?>
@@ -840,7 +864,7 @@ function cm_manage_panel() {
 <?php print_r(get_usermeta($GLOBALS['user_ID'], CM_OPTION_MOODS)); ?>
 </pre></div><?php } ?>
 
-<form method="post">
+<form method="post" action="">
 	<p><?php _e('Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods.', 'cricket-moods'); ?></p>
 	<p><strong><?php _e('Deleting a mood will also remove any references to that mood from your posts.', 'cricket-moods') ?></strong></p>
 
@@ -853,18 +877,20 @@ function cm_manage_panel() {
 <p class="submit">
 <input type="submit" name="cm_mood_update" value="<?php _e('Update Moods', 'cricket-moods') ?> &raquo;"/>
 </p>
+<?php wp_nonce_field('update-options_cricket-moods'); ?>
 </form>
 
-<form method="post">
+<form method="post" action="">
 <fieldset class="cm_danger" id="cm_reset_moods"><legend><?php _e('Reset Moods', 'cricket-moods') ?></legend>
 <p><?php _e('Clicking this button will delete your personal list of moods, causing the plugin to reinitialize your list with the moods specified in the Cricket Moods option panel.  Use this as a last resort only, as it will likely cause custom moods used in past posts to not appear.', 'cricket-moods') ?></p>
-<p class="submit"><input type="submit" name="cm_reset_moods" value="<?php _e('Reset moods to blog defaults!', 'cricket-moods') ?>" onclick="return confirm('<?php _e('Are you sure that you want to reset your moods?', 'cricket-moods') ?>');"/>
+<p class="submit"><input type="submit" name="cm_reset_moods" value="<?php _e('Reset moods to blog defaults!', 'cricket-moods') ?>" onclick="return confirm('<?php _e('Are you sure that you want to reset your moods?', 'cricket-moods') ?>');"/></p>
 </fieldset>
 
 <fieldset class="cm_danger" id="cm_strip_moods"><legend><?php _e('Strip Posts', 'cricket-moods') ?></legend>
 <p><?php _e('Clicking this button will strip <strong>all</strong> of your posts of any moods associated with them.', 'cricket-moods') ?></p>
 <p class="submit"><input type="submit" name="cm_strip_moods" value="<?php _e('Strip moods from all posts!', 'cricket-moods') ?>" onclick="return confirm('<?php _e('Are you sure that you want to strip your posts of moods?', 'cricket-moods') ?>');"/></p>
 </fieldset>
+<?php wp_nonce_field('stripreset-moods_cricket-moods'); ?>
 </form>
 
 <p id="cm_chirp">* chirp * chirp *</p>
@@ -875,7 +901,7 @@ function cm_manage_panel() {
 } // cm_manage_panel
 
 function cm_add_manage_panel() {
-	add_management_page( __('Manage Moods', 'cricket-moods'), __('Moods', 'cricket-moods'), 1, 'cm-manage-moods', 'cm_manage_panel');
+	add_management_page( __('Manage Moods', 'cricket-moods'), __('Moods', 'cricket-moods'), 'edit_posts', 'cm-manage-moods', 'cm_manage_panel');
 }
 add_action('admin_menu', 'cm_add_manage_panel');
 
@@ -889,12 +915,11 @@ Initialize the default mood list.
 function cm_install($force = false) {
 
 	// This plugin will not work with WP < 2.1.2
-	$wp_var = explode('.', $GLOBALS['wp_version']);
-	if( $wp_var[0] < 2 || ( $wp_var[0] == 2 && $wp_var[1] < 1) || ( $wp_var[0] == 2 && $wp_var[1] == 1 && $wp_var[2] < 2 ) ) {
+	if( version_compare($GLOBALS['wp_version'], '2.1.2', 'lt') ) {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
 	}
 
-	if ( get_option(CM_OPTION_VERSION) != CM_VERSION || $_GET['cm_force_install'] == 'true' || $force == true ) {
+	if ( get_option(CM_OPTION_VERSION) != CM_VERSION || ( $_GET['cm_force_install'] == 'true' && current_user_can('manage_options') ) || $force == true ) {
 
 		update_option(CM_OPTION_VERSION, CM_VERSION);
 

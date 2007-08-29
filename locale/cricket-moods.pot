@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Cricket Moods 3.4\n"
+"Project-Id-Version: Cricket Moods 3.6\n"
 "Report-Msgid-Bugs-To: kccricket@gmail.com\n"
-"POT-Creation-Date: 2007-02-21 19:55-0500\n"
+"POT-Creation-Date: 2007-08-24 23:44-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,249 +16,249 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: cricket-moods.php:91
+#: cricket-moods.php:94
 msgid "emoticon"
 msgstr ""
 
-#: cricket-moods.php:310 cricket-moods.php:839
+#: cricket-moods.php:313 cricket-moods.php:905
 msgid "Moods"
 msgstr ""
 
-#: cricket-moods.php:365
+#: cricket-moods.php:368
 msgid "Current Mood:"
 msgstr ""
 
-#: cricket-moods.php:477 cricket-moods.php:793
+#: cricket-moods.php:510 cricket-moods.php:861
 msgid "Cricket Moods"
 msgstr ""
 
-#: cricket-moods.php:513 cricket-moods.php:729
+#: cricket-moods.php:550 cricket-moods.php:794
 msgid "Moods reset!"
 msgstr ""
 
-#: cricket-moods.php:519 cricket-moods.php:734
+#: cricket-moods.php:557 cricket-moods.php:800
 msgid "Stripping failed."
 msgstr ""
 
-#: cricket-moods.php:522
+#: cricket-moods.php:560
 #, php-format
 msgid "Stripped %s moods from all posts."
 msgstr ""
 
-#: cricket-moods.php:538
+#: cricket-moods.php:577
+msgid "The image directory you supplied either does not exist or is not accessible."
+msgstr ""
+
+#: cricket-moods.php:580
 msgid "You <em>must</em> supply an image directory!"
 msgstr ""
 
-#: cricket-moods.php:558 cricket-moods.php:762
+#: cricket-moods.php:600 cricket-moods.php:829
 #, php-format
 msgid "You must supply <em>either</em> a mood name <em>or</em> an image name for the mood with ID # %s!"
 msgstr ""
 
-#: cricket-moods.php:577
+#: cricket-moods.php:619
 msgid "Options updated!"
 msgstr ""
 
-#: cricket-moods.php:588
+#: cricket-moods.php:631
 msgid "Cricket Moods Options"
 msgstr ""
 
-#: cricket-moods.php:590
+#: cricket-moods.php:633
 msgid "To modify your personal list of moods, visit the <a href=\"edit.php?page=cm-manage-moods\">Manage &raquo; Moods panel</a>"
 msgstr ""
 
-#: cricket-moods.php:596
+#: cricket-moods.php:639
 msgid "Mood image directory:"
 msgstr ""
 
-#: cricket-moods.php:598
+#: cricket-moods.php:641
 msgid "Directory containing the images associated with the moods.  Should be relative to the root of your domain."
 msgstr ""
 
-#: cricket-moods.php:601
+#: cricket-moods.php:644
 msgid "Automatically print moods:"
 msgstr ""
 
-#: cricket-moods.php:603
+#: cricket-moods.php:646
 msgid "Above"
 msgstr ""
 
-#: cricket-moods.php:604
+#: cricket-moods.php:647
 msgid "Below"
 msgstr ""
 
-#: cricket-moods.php:605
+#: cricket-moods.php:648
 msgid "Off"
 msgstr ""
 
-#: cricket-moods.php:606
+#: cricket-moods.php:649
 msgid "Causes Cricket Moods to automatically display moods just before or after each post's content without the need to modify the active template.  Turn this off if you've manually added <code>cm_the_moods()</code> to your template."
 msgstr ""
 
-#: cricket-moods.php:610
+#: cricket-moods.php:653
 msgid "Default Moods"
 msgstr ""
 
-#: cricket-moods.php:611
+#: cricket-moods.php:654
 msgid "Use the table below to modify the <strong>default list of moods</strong> for new users.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods."
 msgstr ""
 
-#: cricket-moods.php:612
-msgid "You can also view a table of <a href=\"options-general.php?page=cm-options&amp;showimages=true\">available mood images</a> in the mood image directory."
-msgstr ""
-
-#: cricket-moods.php:622
+#: cricket-moods.php:662
 msgid "Update Options"
 msgstr ""
 
-#: cricket-moods.php:627 cricket-moods.php:820
+#: cricket-moods.php:668 cricket-moods.php:885
 msgid "Reset Moods"
 msgstr ""
 
-#: cricket-moods.php:628
+#: cricket-moods.php:669
 msgid "Clicking this button will reset the blog's default mood list to the built-in \"factory default\" mood list.  This will not affect any user's personal mood list."
 msgstr ""
 
-#: cricket-moods.php:629
+#: cricket-moods.php:670
 msgid "Reset moods to factory defaults!"
 msgstr ""
 
-#: cricket-moods.php:629 cricket-moods.php:822
+#: cricket-moods.php:670 cricket-moods.php:887
 msgid "Are you sure that you want to reset your moods?"
 msgstr ""
 
-#: cricket-moods.php:632 cricket-moods.php:825
+#: cricket-moods.php:673 cricket-moods.php:890
 msgid "Strip Posts"
 msgstr ""
 
-#: cricket-moods.php:633
+#: cricket-moods.php:674
 msgid "Clicking this button will strip <strong>all</strong> posts by <strong>all users</strong> of any moods associated with them."
 msgstr ""
 
-#: cricket-moods.php:634 cricket-moods.php:827
+#: cricket-moods.php:675 cricket-moods.php:892
 msgid "Strip moods from all posts!"
 msgstr ""
 
-#: cricket-moods.php:634
+#: cricket-moods.php:675
 msgid "Are you sure that you want to strip every post ever posted on this blog of moods?"
 msgstr ""
 
-#: cricket-moods.php:682 cricket-moods.php:683
+#: cricket-moods.php:732 cricket-moods.php:739
 msgid "ID"
 msgstr ""
 
-#: cricket-moods.php:682 cricket-moods.php:683
+#: cricket-moods.php:733 cricket-moods.php:740
 msgid "Mood Name"
 msgstr ""
 
-#: cricket-moods.php:682 cricket-moods.php:683
+#: cricket-moods.php:734 cricket-moods.php:741
+msgid "Image"
+msgstr ""
+
+#: cricket-moods.php:735 cricket-moods.php:742
 msgid "Image File"
 msgstr ""
 
-#: cricket-moods.php:682 cricket-moods.php:683
+#: cricket-moods.php:736 cricket-moods.php:743
 msgid "Delete"
 msgstr ""
 
-#: cricket-moods.php:693
+#: cricket-moods.php:755
 msgid "Are you sure you want to delete this mood?"
 msgstr ""
 
-#: cricket-moods.php:737
+#: cricket-moods.php:803
 #, php-format
 msgid "Stripped %s moods from your posts."
 msgstr ""
 
-#: cricket-moods.php:781
+#: cricket-moods.php:848
 msgid "Moods updated!"
 msgstr ""
 
-#: cricket-moods.php:801
+#: cricket-moods.php:869
 msgid "Use the table below to modify your list of moods.  You may leave <em>either</em> the name <em>or</em> the image blank, but not both.  Use the blank entries at the bottom to add new moods."
 msgstr ""
 
-#: cricket-moods.php:802
-msgid "You can also view a table of <a href=\"edit.php?page=cm-manage-moods&amp;showimages=true\">available mood images</a> in the mood image directory."
-msgstr ""
-
-#: cricket-moods.php:803
+#: cricket-moods.php:870
 msgid "Deleting a mood will also remove any references to that mood from your posts."
 msgstr ""
 
-#: cricket-moods.php:813
+#: cricket-moods.php:877
 msgid "If you need to add more than five new moods, just click the \"Update Moods\" button and five more blank lines will become available."
 msgstr ""
 
-#: cricket-moods.php:815
+#: cricket-moods.php:879
 msgid "Update Moods"
 msgstr ""
 
-#: cricket-moods.php:821
+#: cricket-moods.php:886
 msgid "Clicking this button will delete your personal list of moods, causing the plugin to reinitialize your list with the moods specified in the Cricket Moods option panel.  Use this as a last resort only, as it will likely cause custom moods used in past posts to not appear."
 msgstr ""
 
-#: cricket-moods.php:822
+#: cricket-moods.php:887
 msgid "Reset moods to blog defaults!"
 msgstr ""
 
-#: cricket-moods.php:826
+#: cricket-moods.php:891
 msgid "Clicking this button will strip <strong>all</strong> of your posts of any moods associated with them."
 msgstr ""
 
-#: cricket-moods.php:827
+#: cricket-moods.php:892
 msgid "Are you sure that you want to strip your posts of moods?"
 msgstr ""
 
-#: cricket-moods.php:839
+#: cricket-moods.php:905
 msgid "Manage Moods"
 msgstr ""
 
-#: cricket-moods.php:865
+#: cricket-moods.php:930
 msgid "Alarmed"
 msgstr ""
 
-#: cricket-moods.php:866
+#: cricket-moods.php:931
 msgid "Angry"
 msgstr ""
 
-#: cricket-moods.php:867
+#: cricket-moods.php:932
 msgid "Bored"
 msgstr ""
 
-#: cricket-moods.php:868
+#: cricket-moods.php:933
 msgid "Confused"
 msgstr ""
 
-#: cricket-moods.php:869
+#: cricket-moods.php:934
 msgid "Cool"
 msgstr ""
 
-#: cricket-moods.php:870
+#: cricket-moods.php:935
 msgid "Esctatic"
 msgstr ""
 
-#: cricket-moods.php:871
+#: cricket-moods.php:936
 msgid "Flirtatious"
 msgstr ""
 
-#: cricket-moods.php:872
+#: cricket-moods.php:937
 msgid "Happy"
 msgstr ""
 
-#: cricket-moods.php:873
+#: cricket-moods.php:938
 msgid "Mischievous"
 msgstr ""
 
-#: cricket-moods.php:874
+#: cricket-moods.php:939
 msgid "Playful"
 msgstr ""
 
-#: cricket-moods.php:875
+#: cricket-moods.php:940
 msgid "Sad"
 msgstr ""
 
-#: cricket-moods.php:876
+#: cricket-moods.php:941
 msgid "Sickly"
 msgstr ""
 
-#: cricket-moods.php:877
+#: cricket-moods.php:942
 msgid "Surprised"
 msgstr ""

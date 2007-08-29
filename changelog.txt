@@ -1,10 +1,13 @@
 === Cricket Moods Changelog ===
 
-Unreleased: Version 3.6
+20070829: Version 3.6
 * Now fails silently if the mood image directory does not exist.
 * Fixed a silly omission in cm_list_mood_images for the manage and admin panels.
 * Fix for a possible problem in the manage and admin panels that may cause some mood images to not display.
-* Added proper user capabilities and nonce protection on cm_update_post_moods().
+* Tried to beef up security by adding nonce and capabilities checks in various places.
+* Switched out my broken JS for jquery.
+* The blank mood lines will now update their mood images properly.
+* Added a warning if the selected mood image directory is not readable.
 
 20070323: Version 3.5
 * Removed redundant cm_update_post_moods action hook (this may make it incompatible with WP < 2.1.2).
