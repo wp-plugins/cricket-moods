@@ -6,8 +6,7 @@ Contributors: kccricket
 Donate link: http://kccricket.net/projects/
 Tags: mood, meta, post
 
-Cricket Moods is a flexible "mood tag" WordPress plugin.  It allows an author to
-add one or more "moods" to every post.
+Cricket Moods is a flexible "mood tag" WordPress plugin.  It allows an author to add one or more "moods" to every post.
 
 == Description ==
 
