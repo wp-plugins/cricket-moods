@@ -1,13 +1,12 @@
 === Cricket Moods ===
 Stable tag: 3.6
-Tested up to: 2.2.2
+Tested up to: 2.3
 Requires at least: 2.1.2
 Contributors: kccricket
 Donate link: http://kccricket.net/projects/
 Tags: mood, meta, post
 
-Cricket Moods is a flexible "mood tag" WordPress plugin.  It allows an author to
-add one or more "moods" to every post.
+Cricket Moods is a flexible "mood tag" WordPress plugin.  It allows an author to add one or more "moods" to every post.
 
 == Description ==
 
