@@ -31,6 +31,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
  * It is not necessary to modify anything in this file. *
  ************************************************** !! **/
 
+// Serve up the style sheet if we're called directly.
+if ( !defined(ABSPATH) && $_GET['style'] == 'true') {
+	cm_admin_style();
+	exit();
+}
+
 define('CM_VERSION', '3.6');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
@@ -46,11 +52,6 @@ define('CM_OPTION_VERSION', 'cricketmoods_version');
 define('CM_META_KEY', 'mood');
 
 load_plugin_textdomain('cricket-moods','wp-content/plugins/');
-
-if ($_GET['style'] == 'true') {
-	cm_admin_style();
-	exit();
-}
 
 /**
 cm_the_moods
@@ -90,7 +91,7 @@ function cm_the_moods($separator=' &amp; ', $before = null, $after = null, $retu
 
 				// Only print the img tag if the mood has an associated image.
 				if( !empty( $mood_list[$mood_id]['mood_image'] ) ) {
-					$output .= '<img src="'. get_option(CM_OPTION_DIR) . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' '. __('emoticon', 'cricket-moods') .'" /> ';
+					$output .= '<img src="'. get_option('siteurl') . _cm_get_option(CM_OPTION_DIR) . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' '. __('emoticon', 'cricket-moods') .'" /> ';
 				}
 
 				$output .= $mood_name;
@@ -189,13 +190,13 @@ function cm_get_index($user_ID = '') {
 
 
 /**
-cm_get_posted_moods
+cm_get_submitted_moods
 
 Parses $_POST elements and returns an array of
 the values (mood ids) used by CM.  Returns FALSE
 if no applicable values were submitted.
 */
-function cm_get_posted_moods() {
+function cm_get_submitted_moods() {
 	$moods = array();
 	foreach($_POST as $key => $val) {
 		// CM input element names are prefixed by 'cm_mood_'.
@@ -242,12 +243,15 @@ function cm_update_post_moods($post_ID, $moods = null) {
 	// If no $moods passed, pull from $_POST.
 	if( !isset($moods) ) {
 		if( !current_user_can('edit_post', $post_ID) || !wp_verify_nonce($_POST['cricket-moods_verify-key'], 'update-postmoods_cricket-moods') ) return $post_ID;
-		$moods = cm_get_posted_moods();
+		$moods = cm_get_submitted_moods();
 	}
 
 	// If the current post already has moods associated with it.
 	if( cm_has_moods($post_ID) ) {
 		if($moods) {
+			// Remove any doubled moods.
+			$moods = array_unique($moods);
+
 			// Find out what moods the post currently has.
 			$current_moods = cm_get_post_moods($post_ID);
 
@@ -258,7 +262,11 @@ function cm_update_post_moods($post_ID, $moods = null) {
 
 			// Diff the other way and remove any deselected moods.
 			foreach( array_diff($current_moods, $moods) as $mood_id ) {
-				delete_post_meta($post_ID, CM_META_KEY, $mood_id);
+				// Use a while statement to delete possibly duplicated moods.
+				while( delete_post_meta($post_ID, CM_META_KEY, $mood_id) ) {
+					// delete_post_meta returns false if there is nothing to delete.
+					continue;
+				}
 			}
 		}
 
@@ -329,7 +337,7 @@ function cm_list_select_moods() {
 
 		// If the mood has an associated image, show that just before the label.
 		if( !empty($mood_info['mood_image']) )
-			echo "<img src='". get_option(CM_OPTION_DIR) . $mood_info['mood_image'] ."' />";
+			echo "<img src='". _cm_get_option(CM_OPTION_DIR) . $mood_info['mood_image'] ."' />";
 
 		echo str_replace( ' ', '&nbsp;', wptexturize($mood_info['mood_name']) ) ."</label></span>\n";
 	}
@@ -482,13 +490,15 @@ if( strpos($_SERVER['PHP_SELF'], 'wp-admin/') !== false ) {
 }
 
 
-function cm_admin_head() { ?>
+function cm_admin_head() {
+	$u = parse_url(get_option('siteurl'));
+	$p = str_replace($_SERVER['DOCUMENT_ROOT'], '', __FILE__); ?>
 <!-- Cricket Moods stuff -->
-<link rel="stylesheet" href="<?php echo $_SERVER[PHP_SELF] ?>?style=true" type="text/css" />
+<link rel="stylesheet" href="<?php echo $u['scheme'] .'://'. $u['host'] . $p ?>?style=true" type="text/css" />
 <script type="text/javascript" language="javascript">
 	// <![CDATA[
 	function cmUE(id) {
-		jQuery("img#cm_image_preview_"+id).attr("src","<?php echo wp_specialchars(get_option(CM_OPTION_DIR)); ?>"+jQuery("input#cm_image_" + id).val());
+		jQuery("img#cm_image_preview_"+id).attr("src","<?php echo wp_specialchars(get_option('siteurl') . _cm_get_option(CM_OPTION_DIR)); ?>"+jQuery("input#cm_image_" + id).val());
 	}
 	// ]]>
 </script>
@@ -551,7 +561,7 @@ function cm_admin_panel() {
 
 		elseif ( isset($_POST['cm_strip_moods']) ){
 			check_admin_referer('stripreset-moods_cricket-moods');
-			$results =  $wpdb->query("DELETE FROM ". $wpdb->prefix ."postmeta WHERE meta_key='". CM_META_KEY ."'");
+			$results =  $wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key='". CM_META_KEY ."'");
 			if ( $results === false ) {
 				echo '<div id="message" class="error fade"><p>'. __('Stripping failed.', 'cricket-moods') .'</p></div>';
 			}
@@ -565,18 +575,25 @@ function cm_admin_panel() {
 			check_admin_referer('update-options_cricket-moods');
 			$err = array();
 
-			// We don't like a blank image directory.
-			if ( !empty($_POST['cm_image_dir'] ) ) {
-				// Add a trailing slash if it doesn't have one.
-				if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
-					$_POST['cm_image_dir'] .= '/';
+			// Check if we're running in WPMU.
+			if ( !_cm_is_mu() || _cm_is_mu(TRUE) ) {
+				// We don't like a blank image directory.
+				if ( !empty($_POST['cm_image_dir']) ) {
+					// Add a trailing slash if it doesn't have one.
+					if ( substr( $_POST['cm_image_dir'], -1, 1 ) != '/' ) {
+						$_POST['cm_image_dir'] .= '/';
+					}
+					if ( _cm_is_mu() ) {
+						update_site_option( CM_OPTION_DIR, $_POST['cm_image_dir'] );
+					} else {
+						update_option( CM_OPTION_DIR, $_POST['cm_image_dir'] );
+					}
+					if( !is_readable($_SERVER['DOCUMENT_ROOT'].$_POST['cm_image_dir']) ) {
+						$err['cm_image_dir'] = __('The image directory you supplied either does not exist or is not accessible.', 'cricket-moods');
+					}
+				} else {
+					$err['cm_image_dir'] = __('You <em>must</em> supply an image directory!', 'cricket-moods');
 				}
-				update_option( CM_OPTION_DIR, $_POST['cm_image_dir'] );
-				if( !is_readable($_SERVER['DOCUMENT_ROOT'].$_POST['cm_image_dir']) ) {
-					$err['cm_image_dir'] = __('The image directory you supplied either does not exist or is not accessible.', 'cricket-moods');
-				}
-			} else {
-				$err['cm_image_dir'] = __('You <em>must</em> supply an image directory!', 'cricket-moods');
 			}
 
 			// Pretty obvious.  Set or unset the autoprint option.
@@ -634,11 +651,13 @@ function cm_admin_panel() {
 <form method="post" action="">
 
 <table width="100%" cellspacing="2" cellpadding="5" class="editform">
+<?php if ( !_cm_is_mu() || _cm_is_mu(TRUE) ) { ?>
 <tr valign="top"<?php cm_err('cm_image_dir', $err) ?>>
 <th width="33%" scope="row"><?php _e('Mood image directory:', 'cricket-moods') ?></th>
-	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo form_option(CM_OPTION_DIR) ?>" /><br/>
+	<td><input type="text" id="cm_image_dir" name="cm_image_dir" value="<?php echo attribute_escape( _cm_is_mu() ? get_site_option(CM_OPTION_DIR) : get_option(CM_OPTION_DIR) ); ?>" /><br/>
 	<?php _e('Directory containing the images associated with the moods.  Should be relative to the root of your domain.', 'cricket-moods') ?></td>
 </tr>
+<?php } // is_mu ?>
 <tr valign="top"<?php cm_err('cm_auto_print', $err) ?>>
 <th width="33%" scope="row"><?php _e('Automatically print moods:', 'cricket-moods') ?></th>
 	<td>
@@ -688,12 +707,12 @@ cm_list_mood_images
 
 **/
 function cm_list_mood_images() {
-	$d = @dir($_SERVER['DOCUMENT_ROOT'].get_option(CM_OPTION_DIR));
+	$d = @dir($_SERVER['DOCUMENT_ROOT']._cm_get_option(CM_OPTION_DIR));
 	$files = array();
 	if ( !empty($d) ) {
 		while ( false !== ( $entry = $d->read() ) ) {
 			if ( eregi('\.gif|\.png|\.jp(g|eg?)', $entry) ) {
-				$files[$entry] = get_option(CM_OPTION_DIR) . $entry;
+				$files[$entry] = _cm_get_option(CM_OPTION_DIR) . $entry;
 			}
 		}
 		$d->close();
@@ -723,7 +742,7 @@ cm_edit_moods_table
 **/
 function cm_edit_moods_table($mood_list, $index, $err = array() ) {
 
-$dir = get_option(CM_OPTION_DIR);
+$dir = _cm_get_option(CM_OPTION_DIR);
 
 ?>
 	<table id="cm_mood_table">
@@ -794,7 +813,7 @@ function cm_manage_panel() {
 		}
 		elseif ( isset($_POST['cm_strip_moods']) ){
 			check_admin_referer('stripreset-moods_cricket-moods');
-			$results =  $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='". CM_META_KEY ."' AND post_author=$user_ID");
+			$results =  $wpdb->query("DELETE $wpdb->postmeta FROM $wpdb->postmeta JOIN $wpdb->posts ON (". $wpdb->postmeta. ".post_id=". $wpdb->posts .".ID) WHERE meta_key='". CM_META_KEY ."' AND post_author=$user_ID");
 			if ( $results === false ) {
 				echo '<div id="message" class="error fade"><p>'. __('Stripping failed.', 'cricket-moods') .'</p></div>';
 			}
@@ -816,7 +835,7 @@ function cm_manage_panel() {
 					// If the user chose to delete this mood, delete the mood and any references to it.
 					if ( !empty($_POST["cm_delete_$value"]) ) {
 
-						if ( $wpdb->query("DELETE ". $wpdb->prefix ."postmeta FROM ". $wpdb->prefix ."postmeta JOIN ". $wpdb->prefix ."posts ON (". $wpdb->prefix ."postmeta.post_id=". $wpdb->prefix ."posts.ID) WHERE meta_key='". CM_META_KEY."' AND meta_value='$value' AND post_author=$user_ID") !== false ) {
+						if ( $wpdb->query("DELETE $wpdb->postmeta FROM $wpdb->postmeta JOIN $wpdb->posts ON (". $wpdb->postmeta.".post_id=". $wpdb->posts.".ID) WHERE meta_key='". CM_META_KEY ."' AND meta_value='$value' AND post_author=$user_ID") !== false ) {
 							unset($mood_list[$value]);
 						}
 
@@ -907,6 +926,24 @@ add_action('admin_menu', 'cm_add_manage_panel');
 
 
 
+function _cm_is_mu($blogone = FALSE) {
+	if( $blogone === FALSE ) {
+		return function_exists('get_blog_option');
+	} else {
+		return function_exists('get_blog_option') && $GLOBALS['blog_id'] == 1;
+	}
+}
+
+function _cm_get_option($key) {
+	if( function_exists('get_site_option') ) {
+		return get_site_option($key);
+	} else {
+		return get_option($key);
+	}
+}
+
+
+
 /**
 cm_install
 
@@ -914,8 +951,8 @@ Initialize the default mood list.
 */
 function cm_install($force = false) {
 
-	// This plugin will not work with WP < 2.1.2
-	if( version_compare($GLOBALS['wp_version'], '2.1.2', 'lt') ) {
+	// This plugin will not work with old versions of WP.  I believe nonce support is the newest feature CM relies on.
+	if( !function_exists('wp_nonce_field') ) {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
 	}
 
@@ -944,9 +981,14 @@ function cm_install($force = false) {
 			update_option(CM_OPTION_MOODS, $inital_moods);
 			update_option(CM_OPTION_INDEX, count($inital_moods) );
 		}
-		if ( !get_option(CM_OPTION_DIR) ) {
-			$basepath = parse_url( get_option('siteurl') );
-			update_option(CM_OPTION_DIR,  $basepath['path'] .'/wp-includes/images/smilies/');
+		if ( !_cm_get_option(CM_OPTION_DIR) ) {
+			if ( _cm_is_mu() ) {
+				$basepath = parse_url(get_blog_option(1, 'siteurl'));
+				update_site_option(CM_OPTION_DIR,  $basepath['path'] .'/wp-includes/images/smilies/');
+			} else {
+				$basepath = parse_url(get_option('siteurl'));
+				update_option(CM_OPTION_DIR,  $basepath['path'] .'/wp-includes/images/smilies/');
+			}
 		}
 		if ( !get_option(CM_OPTION_AUTOPRINT) || get_option(CM_OPTION_AUTOPRINT) == "on" ) {
 			update_option(CM_OPTION_AUTOPRINT, 'above');
