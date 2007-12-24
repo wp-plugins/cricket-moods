@@ -37,7 +37,7 @@ if ( !defined(ABSPATH) && $_GET['style'] == 'true') {
 	exit();
 }
 
-define('CM_VERSION', '3.6');
+define('CM_VERSION', '3.7');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
