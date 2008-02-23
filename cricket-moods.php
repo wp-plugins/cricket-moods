@@ -897,7 +897,7 @@ function cm_manage_panel() {
 
 </div>
 
-<?
+<?php
 } // cm_manage_panel
 
 function cm_add_manage_panel() {
