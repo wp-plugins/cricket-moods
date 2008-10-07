@@ -238,13 +238,15 @@ Modifies the moods associated with a post.  If the
 $moods parameter is NULL, try to pull the moods
 from $_POST.
 */
-function cm_update_post_moods($post_ID, $moods = null) {
+function cm_update_post_moods($post_ID, $post) {
 
-	// If no $moods passed, pull from $_POST.
-	if( !isset($moods) ) {
-		if( !current_user_can('edit_post', $post_ID) || !wp_verify_nonce($_POST['cricket-moods_verify-key'], 'update-postmoods_cricket-moods') ) return $post_ID;
-		$moods = cm_get_submitted_moods();
+	if($post->post_type == 'revision') {
+		return;
 	}
+
+	// Pull moods from $_POST.
+	if( !current_user_can('edit_post', $post_ID) || !wp_verify_nonce($_POST['cricket-moods_verify-key'], 'update-postmoods_cricket-moods') ) return $post_ID;
+	$moods = cm_get_submitted_moods();
 
 	// If the current post already has moods associated with it.
 	if( cm_has_moods($post_ID) ) {
@@ -292,7 +294,7 @@ function cm_update_post_moods($post_ID, $moods = null) {
 	return $post_ID;
 } // cm_update_moods
 
-add_action('save_post', 'cm_update_post_moods');
+add_action('save_post', 'cm_update_post_moods', 10, 2);
 
 
 
