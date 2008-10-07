@@ -28,8 +28,11 @@ Cats and Dogs."  You could then upload little cloud and sun images and use those
 with the tags instead of the pre-defined mood smilies.  You could even leave the
 tag text or the tag images blank to have either just text or just images.
 
-New in Cricket Moods 3.0 is the ability for every user (contributor and higher)
-to keep their own personal list of moods.
+*Please note that Cricket Moods will only be receiving critical bug fixes from
+this point forth (if we're lucky).  I am working on a complete rewrite of the
+plugin called PostBits.  The code for it isn't complete and needs a lot of
+work.  If you'd like to help, let me know.  Check it out at:*
+http://code.google.com/p/postbits/
 
 
 == Installation ==
@@ -135,7 +138,7 @@ displayed, not yours.  This is an unavoidable feature.
 == Copying ==
 
 Cricket Moods: A flexible mood tag plugin for the WordPress publishing platform.
-Copyright (c) 2007 Keith Constable
+Copyright (c) 2008 Keith Constable
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
