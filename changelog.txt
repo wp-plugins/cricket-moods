@@ -1,5 +1,9 @@
 === Cricket Moods Changelog ===
 
+20081007: Version 3.7
+* Various changes for WPMU compatibility.
+* Fix for duplicate mood issue. Props to Alex King.
+
 20070829: Version 3.6
 * Now fails silently if the mood image directory does not exist.
 * Fixed a silly omission in cm_list_mood_images for the manage and admin panels.
