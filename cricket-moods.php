@@ -3,7 +3,7 @@
 Plugin Name: Cricket Moods
 Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 3.7
+Version: 3.7.1
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
@@ -37,7 +37,7 @@ if ( !defined(ABSPATH) && $_GET['style'] == 'true') {
 	exit();
 }
 
-define('CM_VERSION', '3.7');
+define('CM_VERSION', '3.7.1');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
@@ -319,11 +319,11 @@ function cm_list_select_moods() {
 		$post_moods = cm_get_post_moods($post->ID);
 	}
 
-	echo '<fieldset id="cm_moodlist" class="dbx-box"><h3 class="dbx-handle">'. __('Moods', 'cricket-moods') .'</h3><div class="dbx-content">';
+	echo '<div id="cm_moodlist" class="side-info"><h5>'. __('Moods', 'cricket-moods') .'</h5><ul>';
 
 	// Begin printing a checkbox for every mood.
 	foreach($moods as $mood_id => $mood_info) {
-		echo "<label for='cm_mood_$mood_id' class='selectit'><input type='checkbox' id='cm_mood_$mood_id' name='cm_mood_$mood_id' value='$mood_id'";
+		echo "<li><label for='cm_mood_$mood_id' class='selectit'><input type='checkbox' id='cm_mood_$mood_id' name='cm_mood_$mood_id' value='$mood_id'";
 
 		// If we are editing a post, and that post has moods, pre-check the
 		// moods currently assigned to the post.
@@ -341,15 +341,15 @@ function cm_list_select_moods() {
 		if( !empty($mood_info['mood_image']) )
 			echo "<img src='". _cm_get_option(CM_OPTION_DIR) . $mood_info['mood_image'] ."' />";
 
-		echo str_replace( ' ', '&nbsp;', wptexturize($mood_info['mood_name']) ) ."</label></span>\n";
+		echo str_replace( ' ', '&nbsp;', wptexturize($mood_info['mood_name']) ) ."</label></li>\n";
 	}
 
 	echo '<input type="hidden" name="cricket-moods_verify-key" id="cricket-moods_verify-key" value="' . wp_create_nonce('update-postmoods_cricket-moods') . '" />';
-	echo '</div></fieldset>';
+	echo '</ul></div>';
 
 } // cm_list_select_moods
 
-add_action('dbx_post_sidebar', 'cm_list_select_moods');
+add_action('submitpost_box', 'cm_list_select_moods');
 
 
 
