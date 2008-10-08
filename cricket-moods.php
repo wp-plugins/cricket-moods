@@ -32,8 +32,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
  ************************************************** !! **/
 
 // Serve up the style sheet if we're called directly.
-if ( !defined(ABSPATH) && $_GET['style'] == 'true') {
-	cm_admin_style();
+if ( !defined('ABSPATH') ) {
+	if( $_GET['style'] == 'true') {
+		cm_admin_style();
+	}
 	exit();
 }
 
