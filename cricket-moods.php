@@ -953,8 +953,8 @@ Initialize the default mood list.
 */
 function cm_install($force = false) {
 
-	// This plugin will not work with old versions of WP.  I believe nonce support is the newest feature CM relies on.
-	if( !function_exists('wp_nonce_field') ) {
+	// This plugin will not work with old versions of WP.
+	if( !function_exists('wp_save_post_revision') ) {
 		header('Location: plugins.php?action=deactivate&plugin='. basename(__FILE__) );
 	}
 
@@ -1000,8 +1000,7 @@ function cm_install($force = false) {
 
 } // cm_install
 
-if( strpos($_SERVER['PHP_SELF'], 'wp-admin/') !== false ) {
-	add_action('init', 'cm_install');
-}
+add_action('admin_init', 'cm_install');
+
 
 ?>
