@@ -1,7 +1,7 @@
 <?php
 /**
 Plugin Name: Cricket Moods
-Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
+Plugin URI: http://wordpress.org/extend/plugins/cricket-moods/
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
 Version: 3.7.1
 Author: Keith "kccricket" Constable
@@ -10,7 +10,7 @@ Author URI: http://kccricket.net/
 
 /**
 Cricket Moods: A flexible mood tag plugin for the WordPress publishing platform.
-Copyright (c) 2007 Keith Constable
+Copyright (c) 2008 Keith Constable
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
