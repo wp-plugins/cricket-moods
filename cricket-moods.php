@@ -1003,6 +1003,3 @@ function cm_install($force = false) {
 } // cm_install
 
 add_action('admin_init', 'cm_install');
-
-
-?>
