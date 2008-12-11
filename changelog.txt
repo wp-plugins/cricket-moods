@@ -1,5 +1,13 @@
 === Cricket Moods Changelog ===
 
+20081211: Version 3.7.2
+* Psuedo-Fix a few path problems (cuz I'm dumb).
+
+20081009: Version 3.7.1
+* Mood selection on the write page is now on the sidebar.
+* A few backend things that no one will notice.
+* Requires WP 2.6 now, because I'm lazy.
+
 20081007: Version 3.7
 * Various changes for WPMU compatibility.
 * Fix for duplicate mood issue. Props to Alex King.

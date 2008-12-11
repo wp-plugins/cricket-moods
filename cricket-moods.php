@@ -1,16 +1,16 @@
 <?php
 /**
 Plugin Name: Cricket Moods
-Plugin URI: http://dev.wp-plugins.org/wiki/CricketMoods
+Plugin URI: http://wordpress.org/extend/plugins/cricket-moods/
 Description: Allows an author to add multiple mood tags and mood smilies to every post.
-Version: 3.7.1
+Version: 3.7.2
 Author: Keith "kccricket" Constable
 Author URI: http://kccricket.net/
 */
 
 /**
 Cricket Moods: A flexible mood tag plugin for the WordPress publishing platform.
-Copyright (c) 2007 Keith Constable
+Copyright (c) 2008 Keith Constable
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ if ( !defined('ABSPATH') ) {
 	exit();
 }
 
-define('CM_VERSION', '3.7.1');
+define('CM_VERSION', '3.7.2');
 // The name of the option key that contains the available moods.
 define('CM_OPTION_MOODS', 'cricketmoods_moods');
 // The name of the option key that contains the next mood id.
@@ -93,7 +93,7 @@ function cm_the_moods($separator=' &amp; ', $before = null, $after = null, $retu
 
 				// Only print the img tag if the mood has an associated image.
 				if( !empty( $mood_list[$mood_id]['mood_image'] ) ) {
-					$output .= '<img src="'. get_option('siteurl') . _cm_get_option(CM_OPTION_DIR) . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' '. __('emoticon', 'cricket-moods') .'" /> ';
+					$output .= '<img src="'. _cm_get_option(CM_OPTION_DIR) . wptexturize($mood_list[$mood_id]['mood_image']) .'" alt="'. $mood_name .' '. __('emoticon', 'cricket-moods') .'" /> ';
 				}
 
 				$output .= $mood_name;
@@ -498,7 +498,7 @@ function cm_admin_head() {
 	$u = parse_url(get_option('siteurl'));
 	$p = str_replace($_SERVER['DOCUMENT_ROOT'], '', __FILE__); ?>
 <!-- Cricket Moods stuff -->
-<link rel="stylesheet" href="<?php echo $u['scheme'] .'://'. $u['host'] . $p ?>?style=true" type="text/css" />
+<link rel="stylesheet" href="<?php echo $u['scheme'] .'://'. $u['host'] .'/'. $p ?>?style=true" type="text/css" />
 <script type="text/javascript" language="javascript">
 	// <![CDATA[
 	function cmUE(id) {
@@ -1003,6 +1003,3 @@ function cm_install($force = false) {
 } // cm_install
 
 add_action('admin_init', 'cm_install');
-
-
-?>
