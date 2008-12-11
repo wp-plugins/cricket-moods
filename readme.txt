@@ -1,6 +1,6 @@
 === Cricket Moods ===
-Stable tag: 3.7.1
-Tested up to: 2.6.2
+Stable tag: 3.7.2
+Tested up to: 2.7
 Requires at least: 2.6
 Contributors: kccricket
 Donate link: http://kccricket.net/projects/
